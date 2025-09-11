@@ -1,0 +1,91 @@
+import { NavLink, useNavigate } from "react-router-dom";
+import { CircleUserRound, LogOut, Menu, UserRoundCog } from "lucide-react";
+import { useAuthStore } from "../stores/authStore";
+import clsx from "clsx";
+
+function DefaultHeader() {
+    const { user, clearAuth } = useAuthStore();
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        await clearAuth();
+        navigate("/login");
+    };
+
+    const PageMenuLink = ({ name, path, adminOnly }) => {
+        const accesGranted = ["admin", "owner"];
+        const isGranted = accesGranted.includes(user?.privileges);
+        if (adminOnly && !isGranted) return null;
+
+        return (
+            <NavLink
+                to={path}
+                className={({ isActive }) =>
+                    clsx("btn btn-ghost w-full text-left mb-1", {
+                        "btn-warning btn-outline text-warning hover:text-warning-content":
+                            adminOnly,
+                        "font-bold text-primary": isActive,
+                    })
+                }
+            >
+                {name}
+            </NavLink>
+        );
+    };
+
+    return (
+        <header className="w-full py-4 px-6 bg-base-300 flex items-center justify-between sticky top-0 left-0 z-50">
+            <nav className="flex gap-6 bg-transparent border border-base-100 px-3 py-1.5 rounded-2xl">
+                <div className="dropdown dropdown-start">
+                    <div
+                        tabIndex={0}
+                        role="button"
+                        className="btn btn-ghost btn-circle w-fit h-fit"
+                    >
+                        <Menu size={28} style={{ color: "var(--color-base-content)" }} />
+                    </div>
+                    <ul
+                        tabIndex={0}
+                        className="menu menu-md dropdown-content bg-base-200 border border-base-200 rounded-box z-1 mt-3 w-52 p-2 shadow"
+                    >
+                        <PageMenuLink name="Homepage" path="/home" />
+                        <PageMenuLink name="Portfolio" path="/portfolio" />
+                        <PageMenuLink name="About" path="/about" />
+                        <PageMenuLink name="Admin" path="/admin" adminOnly />
+                    </ul>
+                </div>
+            </nav>
+            <h1 className="text-2xl font-bold">Neogend</h1>
+
+            <div className="bg-transparent p-3 rounded-2xl border border-base-100 px-3 py-1.5">
+                <div className="dropdown dropdown-end">
+                    <div
+                        tabIndex={0}
+                        role="button"
+                        className="btn btn-ghost btn-circle w-fit h-fit"
+                    >
+                        <UserRoundCog
+                            size={28}
+                            style={{ color: "var(--color-base-content)" }}
+                        />
+                    </div>
+                    <ul
+                        tabIndex={0}
+                        className="menu menu-md dropdown-content bg-base-200 border border-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow"
+                    >
+                        <PageMenuLink name="Profil" path="/profile" />
+                        <PageMenuLink name="Paramètres" path="/settings" />
+                        <button
+                            onClick={handleLogout}
+                            className="btn btn-error btn-outline"
+                        >
+                            Déconnexion
+                        </button>
+                    </ul>
+                </div>
+            </div>
+        </header>
+    );
+}
+
+export default DefaultHeader;
