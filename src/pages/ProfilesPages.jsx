@@ -1,7 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 
 // LOCAL
 import { useAuthStore } from "../stores/authStore";
+import axios from "axios";
+import API from "../global/API";
 import Renamer from "../components/Renamer";
 import AuthCheck from "../components/AuthCheck";
 import DefaultHeader from "../components/Header";
@@ -17,12 +21,62 @@ import clsx from "clsx";
 import "../App.css";
 
 function ProfilePage() {
-    const { user } = useAuthStore();
+    const { user, token, clearAuth } = useAuthStore();
+    const navigate = useNavigate();
 
-    const handlePasswordChange = () => {
-        console.log("Change Password Clicked");
-        console.log(user);
-        // TODO: implement password change logic
+    // Formulaire changement de mot de passe
+    const {
+        register,
+        handleSubmit,
+        watch,
+        reset,
+        formState: { errors },
+    } = useForm();
+    const newPassword = watch("new_password");
+    const [pwdLoading, setPwdLoading] = useState(false);
+    const [pwdError, setPwdError] = useState("");
+    const [pwdSuccess, setPwdSuccess] = useState("");
+    const [showPwd, setShowPwd] = useState(false);
+
+    const onSubmitPassword = async (data) => {
+        if (!token) {
+            setPwdError("Non authentifié");
+            return;
+        }
+        setPwdError("");
+        setPwdSuccess("");
+        setPwdLoading(true);
+        const oldPwd = (data.old_password || "").trim();
+        const newPwd = (data.new_password || "").trim();
+        if (oldPwd === newPwd) {
+            setPwdLoading(false);
+            setPwdError("Nouveau mot de passe identique");
+            return;
+        }
+        try {
+            await axios.post(
+                `${API}/connected/user/password_change/`,
+                { old_password: oldPwd, new_password: newPwd },
+                { headers: { Authorization: `Bearer ${token}` } },
+            );
+            console.log("Ancien mot de passe : ", oldPwd);
+            console.log("Nouveau mot de passe : ", newPwd);
+            setPwdSuccess("Mot de passe mis à jour. Reconnexion...");
+            reset();
+            setTimeout(async () => {
+                await clearAuth(); // nettoie token + user
+                navigate("/login");
+            }, 1500);
+        } catch (e) {
+            console.error(e);
+            if (e?.response?.status === 400 || e?.response?.status === 401) {
+                setPwdError(e.response.data?.detail || "Ancien mot de passe incorrect");
+            } else {
+                setPwdError("Erreur serveur");
+            }
+        } finally {
+            setPwdLoading(false);
+        }
     };
 
     return (
@@ -130,10 +184,209 @@ function ProfilePage() {
                                         </a>
                                         <button
                                             className="btn btn-secondary"
-                                            onClick={handlePasswordChange}
+                                            onClick={() =>
+                                                document
+                                                    .getElementById(
+                                                        "change_password_modal",
+                                                    )
+                                                    .showModal()
+                                            }
                                         >
                                             Changement de mot de passe
                                         </button>
+                                        <dialog
+                                            id="change_password_modal"
+                                            className="modal"
+                                        >
+                                            <div className="modal-box">
+                                                <h3 className="font-bold text-lg text-center">
+                                                    Changement de Mot de Passe
+                                                </h3>
+                                                <form
+                                                    onSubmit={handleSubmit(
+                                                        onSubmitPassword,
+                                                    )}
+                                                    className="flex flex-col gap-4 mt-4"
+                                                >
+                                                    <div className="form-control">
+                                                        <label className="label text-sm font-semibold">
+                                                            Ancien mot de passe
+                                                        </label>
+                                                        <input
+                                                            type={
+                                                                showPwd
+                                                                    ? "text"
+                                                                    : "password"
+                                                            }
+                                                            className={`input input-bordered w-full ${
+                                                                errors.old_password
+                                                                    ? "input-error"
+                                                                    : ""
+                                                            }`}
+                                                            {...register("old_password", {
+                                                                required: "Requis",
+                                                            })}
+                                                            autoComplete="current-password"
+                                                        />
+                                                        {errors.old_password && (
+                                                            <span className="text-error text-xs mt-1">
+                                                                {
+                                                                    errors.old_password
+                                                                        .message
+                                                                }
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="form-control">
+                                                        <label className="label text-sm font-semibold">
+                                                            Nouveau mot de passe
+                                                        </label>
+                                                        <input
+                                                            type={
+                                                                showPwd
+                                                                    ? "text"
+                                                                    : "password"
+                                                            }
+                                                            className={`input input-bordered w-full ${
+                                                                errors.new_password
+                                                                    ? "input-error"
+                                                                    : ""
+                                                            }`}
+                                                            {...register("new_password", {
+                                                                required: "Requis",
+                                                                minLength: {
+                                                                    value: 4,
+                                                                    message:
+                                                                        "4 caractères min.",
+                                                                },
+                                                            })}
+                                                            autoComplete="new-password"
+                                                        />
+                                                        {errors.new_password && (
+                                                            <span className="text-error text-xs mt-1">
+                                                                {
+                                                                    errors.new_password
+                                                                        .message
+                                                                }
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="form-control">
+                                                        <label className="label text-sm font-semibold">
+                                                            Confirmer le mot de passe
+                                                        </label>
+                                                        <input
+                                                            type={
+                                                                showPwd
+                                                                    ? "text"
+                                                                    : "password"
+                                                            }
+                                                            className={`input input-bordered w-full ${
+                                                                errors.confirm_password
+                                                                    ? "input-error"
+                                                                    : ""
+                                                            }`}
+                                                            {...register(
+                                                                "confirm_password",
+                                                                {
+                                                                    required: "Requis",
+                                                                    validate: (v) =>
+                                                                        v ===
+                                                                            newPassword ||
+                                                                        "Ne correspond pas",
+                                                                },
+                                                            )}
+                                                            autoComplete="new-password"
+                                                        />
+                                                        {errors.confirm_password && (
+                                                            <span className="text-error text-xs mt-1">
+                                                                {
+                                                                    errors
+                                                                        .confirm_password
+                                                                        .message
+                                                                }
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <input
+                                                            id="showPwd"
+                                                            type="checkbox"
+                                                            className="toggle toggle-sm"
+                                                            onChange={(e) =>
+                                                                setShowPwd(
+                                                                    e.target.checked,
+                                                                )
+                                                            }
+                                                        />
+                                                        <label
+                                                            htmlFor="showPwd"
+                                                            className="text-xs"
+                                                        >
+                                                            Afficher
+                                                        </label>
+                                                    </div>
+                                                    {pwdError && (
+                                                        <div className="badge badge-error">
+                                                            {pwdError}
+                                                        </div>
+                                                    )}
+                                                    {pwdSuccess && (
+                                                        <div className="badge badge-success">
+                                                            {pwdSuccess}
+                                                        </div>
+                                                    )}
+                                                    <div className="flex gap-2 mt-2">
+                                                        <button
+                                                            type="submit"
+                                                            className={`btn btn-primary flex-1 ${
+                                                                pwdLoading
+                                                                    ? "btn-disabled"
+                                                                    : ""
+                                                            }`}
+                                                        >
+                                                            {pwdLoading ? (
+                                                                <span className="loading loading-dots" />
+                                                            ) : (
+                                                                "Mettre à jour"
+                                                            )}
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            className="btn btn-outline"
+                                                            onClick={() => {
+                                                                const dlg =
+                                                                    document.getElementById(
+                                                                        "change_password_modal",
+                                                                    );
+                                                                if (dlg && dlg.close)
+                                                                    dlg.close();
+                                                            }}
+                                                        >
+                                                            Fermer
+                                                        </button>
+                                                    </div>
+                                                    <p className="text-xs italic text-center mt-2">
+                                                        Mot de passe oublié ? Contacter un
+                                                        administrateur.
+                                                    </p>
+                                                </form>
+                                            </div>
+                                        </dialog>
+                                        <div
+                                            className="modal-backdrop"
+                                            onClick={() => {
+                                                const dlg = document.getElementById(
+                                                    "change_password_modal",
+                                                );
+                                                if (dlg && dlg.close) dlg.close();
+                                            }}
+                                        >
+                                            <button
+                                                className="hidden"
+                                                aria-hidden="true"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
