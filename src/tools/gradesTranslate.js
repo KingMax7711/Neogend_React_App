@@ -43,6 +43,15 @@ export const gradesToFront = (grade) => {
             return "Première Classe";
         case "ga2":
             return "Seconde Classe";
+        // Exception pour la PN/PM
+        case "cod":
+            return "Commissaire Divisionnaire";
+        case "com":
+            return "Commissaire";
+        case "gdp":
+            return "Gardien de la Paix";
+        default:
+            return "Aucun";
     }
 };
 
@@ -90,6 +99,13 @@ export const frontToGrades = (grade) => {
             return "ga1";
         case "Seconde Classe":
             return "ga2";
+        // Exception pour la PN/PM
+        case "Commissaire Divisionnaire":
+            return "cod";
+        case "Commissaire":
+            return "com";
+        case "Gardien de la Paix":
+            return "gdp";
         default:
             return "Aucun";
     }

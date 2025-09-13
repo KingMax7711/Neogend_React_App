@@ -388,6 +388,14 @@ function ProfilePage() {
                                             />
                                         </div>
                                     </div>
+                                    {user.temp_password && (
+                                        <div className="w-fit mx-auto mb-2 animate-pulse">
+                                            <span className="bg-error/25 text-neutral p-3 rounded-xl border-error border">
+                                                {" "}
+                                                Mot de passe temporaire, à changer !
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>

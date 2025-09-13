@@ -137,6 +137,7 @@ function AdminProfilePage() {
         "Officier de Police Judiciaire",
         "Agent de Police Judiciaire",
         "Agent de Police Judiciaire Adjoint",
+        "Agent de la Force Publique",
     ];
 
     // react-hook-form pour ajout d'une modification à la fois
@@ -193,13 +194,13 @@ function AdminProfilePage() {
         rp_first_name: {
             type: "text",
             label: "Prénom RP",
-            normalize: (v) => v.trim(),
+            normalize: (v) => v.trim().toLowerCase(),
             required: true,
         },
         rp_last_name: {
             type: "text",
             label: "Nom RP",
-            normalize: (v) => v.trim(),
+            normalize: (v) => v.trim().toLowerCase(),
             required: true,
         },
         rp_birthdate: { type: "date", label: "Naissance RP", required: true },
@@ -234,7 +235,7 @@ function AdminProfilePage() {
                 value: frontToQualification(q),
                 label: q,
             })),
-            required: false,
+            required: true,
         },
         rp_nipol: { type: "text", label: "NIGEND / NIPOL", required: true },
         rp_server: {
@@ -348,15 +349,6 @@ function AdminProfilePage() {
                 <div className="min-h-screen bg-base-300">
                     <DefaultHeader />
                     <Renamer pageTitle={"Admin Profil - Neogend"} />
-                    <div className="flex flex-col items-center justify-center">
-                        <div className=" card w-fit bg-base-200 text-center border border-warning shadow-xl m-6 p-6">
-                            Consultation du profil de{" "}
-                            <span className="font-bold">
-                                {formatName(checkUser.first_name)}{" "}
-                                {formatName(checkUser.last_name)}
-                            </span>
-                        </div>
-                    </div>
                     <div className="flex box-border flex-col items-top justify-center md:flex-row gap-4">
                         <div className="bg-base-200 p-6 rounded-3xl shadow-lg m-6 flex flex-col gap-4 h-fit">
                             <h2 className="text-xl font-bold text-center text-neutral">
@@ -477,9 +469,11 @@ function AdminProfilePage() {
                                             <span>{checkUser.rp_birthdate}</span>
                                         </div>
                                         <div className="w-fit">
-                                            <span className="font-bold">Grade: </span>
+                                            <span className="font-bold">Sexe: </span>
                                             <span>
-                                                {gradesToFront(checkUser.rp_grade)}
+                                                {checkUser.rp_gender == "male"
+                                                    ? "Homme"
+                                                    : "Femme"}
                                             </span>
                                         </div>
                                     </div>
@@ -501,6 +495,12 @@ function AdminProfilePage() {
                                                 })}
                                             >
                                                 {serviceToFront(checkUser.rp_service)}
+                                            </span>
+                                        </div>
+                                        <div className="w-fit">
+                                            <span className="font-bold">Grade: </span>
+                                            <span>
+                                                {gradesToFront(checkUser.rp_grade)}
                                             </span>
                                         </div>
                                         <div className="w-fit">
@@ -546,252 +546,302 @@ function AdminProfilePage() {
                                 </div>
                             </div>
                         </div>
-                        <div className="bg-base-200 p-6 rounded-3xl shadow-lg m-6 flex flex-col gap-4 h-fit border border-info">
-                            <h2 className="text-xl font-bold text-center text-neutral">
-                                Modification du profil
-                            </h2>
-                            <div className="bg-base-300 p-4 rounded-xl flex flex-col gap-3">
-                                <h3 className="text-center italic">
-                                    Modification du Mot de Passe
-                                </h3>
+                        <div className="flex flex-col m-6 gap-4">
+                            <div className="bg-base-200 p-6 rounded-3xl shadow-lg flex flex-col gap-4 h-fit border border-info">
+                                <h2 className="text-xl font-bold text-center text-neutral">
+                                    Administration du Profil
+                                </h2>
+                                <p className="text-center italic">
+                                    de : {formatName(checkUser.first_name)}{" "}
+                                    {formatName(checkUser.last_name)}
+                                    <br />
+                                    Alias : {formatName(checkUser.rp_first_name)}{" "}
+                                    {formatName(checkUser.rp_last_name)}
+                                </p>
                                 <button
-                                    className="btn btn-warning"
-                                    onClick={handleResetPassword}
+                                    className="btn btn-info"
+                                    onClick={() => navigate("/admin")}
                                 >
-                                    Réinitialiser
+                                    Retour à la liste
                                 </button>
-                                {tempPassword ? (
-                                    <div className="flex items-center justify-center gap-3">
-                                        <p>Mot de Passe Temporaire :</p>
-                                        <span className="text-center italic p-1 bg-info rounded-lg w-fit">
-                                            {tempPassword}
-                                        </span>
-                                    </div>
-                                ) : null}
                             </div>
-                            <div className="bg-base-300 p-4 rounded-xl flex flex-col gap-3">
-                                <form
-                                    onSubmit={handleSubmit(onAddModification)}
-                                    className="flex flex-col gap-3"
-                                >
-                                    <div className="flex flex-col md:flex-row gap-2">
-                                        <select
-                                            className={clsx(
-                                                "select select-bordered w-full",
-                                                { "select-error": errors.field },
-                                            )}
-                                            {...register("field", {
-                                                required: "Champ requis",
-                                            })}
-                                        >
-                                            <option value="">
-                                                Quel champ modifier ?
-                                            </option>
-                                            {Object.entries(fieldConfig).map(
-                                                ([key, cfg]) => (
-                                                    <option key={key} value={key}>
-                                                        {cfg.label} ({key})
-                                                    </option>
-                                                ),
-                                            )}
-                                        </select>
-                                        {/* Input dynamique */}
-                                        {selectedField &&
-                                            fieldConfig[selectedField] &&
-                                            (() => {
-                                                const cfg = fieldConfig[selectedField];
-                                                if (cfg.type === "select") {
-                                                    return (
-                                                        <select
-                                                            className={clsx(
-                                                                "select select-bordered w-full",
-                                                                {
-                                                                    "select-error":
-                                                                        errors.value,
-                                                                },
-                                                            )}
-                                                            {...register("value", {
-                                                                required:
-                                                                    "Valeur requise",
-                                                            })}
-                                                        >
-                                                            <option value="">
-                                                                Valeur...
-                                                            </option>
-                                                            {cfg.options.map((o) => (
-                                                                <option
-                                                                    key={o.value}
-                                                                    value={o.value}
-                                                                >
-                                                                    {o.label}
-                                                                </option>
-                                                            ))}
-                                                        </select>
-                                                    );
-                                                }
-                                                if (cfg.type === "grade-select") {
-                                                    // On dépend du service potentiellement déjà dans modifications ou dans checkUser
-                                                    const serviceMod = modifications.find(
-                                                        (m) => m.field === "rp_service",
-                                                    );
-                                                    const effectiveService = serviceMod
-                                                        ? serviceMod.value
-                                                        : checkUser?.rp_service; // gn/pn/pm
-                                                    let grades = [];
-                                                    if (effectiveService === "gn")
-                                                        grades = gradeGendarmerie;
-                                                    else if (effectiveService === "pn")
-                                                        grades = gradePoliceNationale;
-                                                    else if (effectiveService === "pm")
-                                                        grades = gradePoliceMunicipale;
-                                                    return (
-                                                        <select
-                                                            className={clsx(
-                                                                "select select-bordered w-full",
-                                                                {
-                                                                    "select-error":
-                                                                        errors.value,
-                                                                },
-                                                            )}
-                                                            disabled={!effectiveService}
-                                                            {...register("value", {
-                                                                required:
-                                                                    "Valeur requise",
-                                                            })}
-                                                        >
-                                                            <option value="">
-                                                                {effectiveService
-                                                                    ? "Grade..."
-                                                                    : "Choisir service d'abord"}
-                                                            </option>
-                                                            {grades.map((g) => (
-                                                                <option
-                                                                    key={g}
-                                                                    label={g}
-                                                                    value={frontToGrades(
-                                                                        g,
-                                                                    )}
-                                                                >
-                                                                    {g}
-                                                                </option>
-                                                            ))}
-                                                        </select>
-                                                    );
-                                                }
-                                                return (
-                                                    <input
-                                                        type={cfg.type}
-                                                        className={clsx(
-                                                            "input input-bordered w-full",
-                                                            {
-                                                                "input-error":
-                                                                    errors.value,
-                                                            },
-                                                        )}
-                                                        {...register("value", {
-                                                            required: "Valeur requise",
-                                                            pattern: cfg.pattern
-                                                                ? {
-                                                                      value: cfg.pattern,
-                                                                      message:
-                                                                          "Format invalide",
-                                                                  }
-                                                                : undefined,
-                                                        })}
-                                                        placeholder={cfg.label}
-                                                    />
-                                                );
-                                            })()}
-                                        <button
-                                            type="submit"
-                                            className="btn btn-primary md:w-32"
-                                        >
-                                            Ajouter
-                                        </button>
-                                    </div>
-                                    {errors.field && (
-                                        <span className="text-error text-sm">
-                                            {errors.field.message}
-                                        </span>
-                                    )}
-                                    {errors.value && (
-                                        <span className="text-error text-sm">
-                                            {errors.value.message}
-                                        </span>
-                                    )}
-                                </form>
-                                {/* Liste des modifications préparées */}
-                                {modifications.length > 0 && (
-                                    <div className="flex flex-col gap-2">
-                                        <h4 className="font-bold text-sm">
-                                            Modifications en attente :
-                                        </h4>
-                                        <ul className="flex flex-col gap-1">
-                                            {modifications.map((m) => (
-                                                <li
-                                                    key={m.field}
-                                                    className="flex items-center justify-between bg-base-100 rounded-xl px-3 py-2 text-sm"
-                                                >
-                                                    <span>
-                                                        <span className="font-bold">
-                                                            {fieldConfig[m.field]?.label}{" "}
-                                                            :
-                                                        </span>{" "}
-                                                        {m.label}
-                                                    </span>
-                                                    <button
-                                                        className="btn btn-xs btn-error"
-                                                        onClick={() =>
-                                                            removeModification(m.field)
-                                                        }
-                                                        type="button"
-                                                    >
-                                                        Retirer
-                                                    </button>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                        <div className="flex gap-2 mt-2">
-                                            <button
+                            <div className="bg-base-200 p-6 rounded-3xl shadow-lg flex flex-col gap-4 h-fit border border-info">
+                                <h2 className="text-xl font-bold text-center text-neutral">
+                                    Modification du profil
+                                </h2>
+                                <div className="bg-base-300 p-4 rounded-xl flex flex-col gap-3">
+                                    <h3 className="text-center italic">
+                                        Modification du Mot de Passe
+                                    </h3>
+                                    <button
+                                        className="btn btn-warning"
+                                        onClick={handleResetPassword}
+                                    >
+                                        Réinitialiser
+                                    </button>
+                                    {tempPassword ? (
+                                        <div className="flex items-center justify-center gap-3">
+                                            <p>Mot de Passe Temporaire :</p>
+                                            <span className="text-center italic p-1 bg-info rounded-lg w-fit">
+                                                {tempPassword}
+                                            </span>
+                                        </div>
+                                    ) : null}
+                                </div>
+                                <div className="bg-base-300 p-4 rounded-xl flex flex-col gap-3">
+                                    <form
+                                        onSubmit={handleSubmit(onAddModification)}
+                                        className="flex flex-col gap-3"
+                                    >
+                                        <div className="flex flex-col md:flex-row gap-2">
+                                            <select
                                                 className={clsx(
-                                                    "btn btn-success flex-1",
-                                                    { "btn-disabled": saving },
+                                                    "select select-bordered w-full",
+                                                    { "select-error": errors.field },
                                                 )}
-                                                onClick={submitAll}
-                                                type="button"
+                                                {...register("field", {
+                                                    required: "Champ requis",
+                                                })}
                                             >
-                                                {saving ? (
-                                                    <span className="loading loading-dots" />
-                                                ) : (
-                                                    "Enregistrer"
+                                                <option value="">
+                                                    Quel champ modifier ?
+                                                </option>
+                                                {Object.entries(fieldConfig).map(
+                                                    ([key, cfg]) => (
+                                                        <option key={key} value={key}>
+                                                            {cfg.label} ({key})
+                                                        </option>
+                                                    ),
                                                 )}
-                                            </button>
+                                            </select>
+                                            {/* Input dynamique */}
+                                            {selectedField &&
+                                                fieldConfig[selectedField] &&
+                                                (() => {
+                                                    const cfg =
+                                                        fieldConfig[selectedField];
+                                                    if (cfg.type === "select") {
+                                                        return (
+                                                            <select
+                                                                className={clsx(
+                                                                    "select select-bordered w-full",
+                                                                    {
+                                                                        "select-error":
+                                                                            errors.value,
+                                                                    },
+                                                                )}
+                                                                {...register("value", {
+                                                                    required:
+                                                                        "Valeur requise",
+                                                                })}
+                                                            >
+                                                                <option value="">
+                                                                    Valeur...
+                                                                </option>
+                                                                {cfg.options.map((o) => (
+                                                                    <option
+                                                                        key={o.value}
+                                                                        value={o.value}
+                                                                    >
+                                                                        {o.label}
+                                                                    </option>
+                                                                ))}
+                                                            </select>
+                                                        );
+                                                    }
+                                                    if (cfg.type === "grade-select") {
+                                                        // On dépend du service potentiellement déjà dans modifications ou dans checkUser
+                                                        const serviceMod =
+                                                            modifications.find(
+                                                                (m) =>
+                                                                    m.field ===
+                                                                    "rp_service",
+                                                            );
+                                                        const effectiveService =
+                                                            serviceMod
+                                                                ? serviceMod.value
+                                                                : checkUser?.rp_service; // gn/pn/pm
+                                                        let grades = [];
+                                                        if (effectiveService === "gn")
+                                                            grades = gradeGendarmerie;
+                                                        else if (
+                                                            effectiveService === "pn"
+                                                        )
+                                                            grades = gradePoliceNationale;
+                                                        else if (
+                                                            effectiveService === "pm"
+                                                        )
+                                                            grades =
+                                                                gradePoliceMunicipale;
+                                                        return (
+                                                            <select
+                                                                className={clsx(
+                                                                    "select select-bordered w-full",
+                                                                    {
+                                                                        "select-error":
+                                                                            errors.value,
+                                                                    },
+                                                                )}
+                                                                disabled={
+                                                                    !effectiveService
+                                                                }
+                                                                {...register("value", {
+                                                                    required:
+                                                                        "Valeur requise",
+                                                                })}
+                                                            >
+                                                                <option value="">
+                                                                    {effectiveService
+                                                                        ? "Grade..."
+                                                                        : "Choisir service d'abord"}
+                                                                </option>
+                                                                {grades.map((g) => (
+                                                                    <option
+                                                                        key={g}
+                                                                        label={g}
+                                                                        value={frontToGrades(
+                                                                            g,
+                                                                        )}
+                                                                    >
+                                                                        {g}
+                                                                    </option>
+                                                                ))}
+                                                            </select>
+                                                        );
+                                                    }
+                                                    return (
+                                                        <input
+                                                            type={cfg.type}
+                                                            className={clsx(
+                                                                "input input-bordered w-full",
+                                                                {
+                                                                    "input-error":
+                                                                        errors.value,
+                                                                },
+                                                            )}
+                                                            {...register("value", {
+                                                                required:
+                                                                    "Valeur requise",
+                                                                pattern: cfg.pattern
+                                                                    ? {
+                                                                          value: cfg.pattern,
+                                                                          message:
+                                                                              "Format invalide",
+                                                                      }
+                                                                    : undefined,
+                                                            })}
+                                                            placeholder={cfg.label}
+                                                        />
+                                                    );
+                                                })()}
                                             <button
-                                                className="btn btn-outline btn-warning"
-                                                onClick={clearModifications}
-                                                type="button"
+                                                type="submit"
+                                                className="btn btn-primary md:w-32"
                                             >
-                                                Vider
+                                                Ajouter
                                             </button>
                                         </div>
-                                        {saveError && (
-                                            <div className="badge badge-error mt-2">
-                                                {saveError}
-                                            </div>
+                                        {errors.field && (
+                                            <span className="text-error text-sm">
+                                                {errors.field.message}
+                                            </span>
                                         )}
-                                        {saveSuccess && (
-                                            <div className="badge badge-success mt-2">
-                                                {saveSuccess}
-                                            </div>
+                                        {errors.value && (
+                                            <span className="text-error text-sm">
+                                                {errors.value.message}
+                                            </span>
                                         )}
-                                    </div>
-                                )}
-                                {modifications.length === 0 && (
-                                    <div className="text-xs italic opacity-70">
-                                        Aucune modification en attente.
-                                    </div>
-                                )}
+                                    </form>
+                                    {/* Liste des modifications préparées */}
+                                    {modifications.length > 0 && (
+                                        <div className="flex flex-col gap-2">
+                                            <h4 className="font-bold text-sm">
+                                                Modifications en attente :
+                                            </h4>
+                                            <ul className="flex flex-col gap-1">
+                                                {modifications.map((m) => (
+                                                    <li
+                                                        key={m.field}
+                                                        className="flex items-center justify-between bg-base-100 rounded-xl px-3 py-2 text-sm"
+                                                    >
+                                                        <span>
+                                                            <span className="font-bold">
+                                                                {
+                                                                    fieldConfig[m.field]
+                                                                        ?.label
+                                                                }{" "}
+                                                                :
+                                                            </span>{" "}
+                                                            {m.label}
+                                                        </span>
+                                                        <button
+                                                            className="btn btn-xs btn-error"
+                                                            onClick={() =>
+                                                                removeModification(
+                                                                    m.field,
+                                                                )
+                                                            }
+                                                            type="button"
+                                                        >
+                                                            Retirer
+                                                        </button>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                            <div className="flex gap-2 mt-2">
+                                                <button
+                                                    className={clsx(
+                                                        "btn btn-success flex-1",
+                                                        { "btn-disabled": saving },
+                                                    )}
+                                                    onClick={submitAll}
+                                                    type="button"
+                                                >
+                                                    {saving ? (
+                                                        <span className="loading loading-dots" />
+                                                    ) : (
+                                                        "Enregistrer"
+                                                    )}
+                                                </button>
+                                                <button
+                                                    className="btn btn-outline btn-warning"
+                                                    onClick={clearModifications}
+                                                    type="button"
+                                                >
+                                                    Vider
+                                                </button>
+                                            </div>
+                                            {saveError && (
+                                                <div className="badge badge-error mt-2">
+                                                    {saveError}
+                                                </div>
+                                            )}
+                                            {saveSuccess && (
+                                                <div className="badge badge-success mt-2">
+                                                    {saveSuccess}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                    {modifications.length === 0 && (
+                                        <div className="text-xs italic opacity-70">
+                                            Aucune modification en attente.
+                                        </div>
+                                    )}
+                                </div>
                             </div>
+                            {checkUser.temp_password && (
+                                <div className="bg-error/5 p-6 rounded-3xl shadow-lg flex flex-col gap-4 h-fit border border-error border-dashed">
+                                    <h2 className="text-xl font-bold text-center text-neutral">
+                                        Avertissement
+                                    </h2>
+                                    <p className="text-center italic">
+                                        Le mot de passe de cet utilisateur est un mot de
+                                        passe temporaire. <br /> Merci de lui rappeler de
+                                        le changer dès sa prochaine connexion.
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

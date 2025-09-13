@@ -6,6 +6,8 @@ export const qualificationToFront = (qualification) => {
             return "Agent de Police Judiciaire";
         case "apja":
             return "Agent de Police Judiciaire Adjoint";
+        case "afp":
+            return "Agent de la Force Publique";
         default:
             return "Aucune";
     }
@@ -18,6 +20,8 @@ export const frontToQualification = (qualification) => {
             return "apj";
         case "Agent de Police Judiciaire Adjoint":
             return "apja";
+        case "Agent de la Force Publique":
+            return "afp";
         default:
             return "Aucune";
     }

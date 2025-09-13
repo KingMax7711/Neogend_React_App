@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { CircleUserRound, LogOut, Menu, UserRoundCog } from "lucide-react";
+import formatName from "../tools/formatName";
 import { useAuthStore } from "../stores/authStore";
 import clsx from "clsx";
 
@@ -34,8 +35,8 @@ function DefaultHeader() {
     };
 
     return (
-        <header className="w-full py-4 px-6 bg-base-300 flex items-center justify-between sticky top-0 left-0 z-50">
-            <nav className="flex gap-6 bg-transparent border border-base-100 px-3 py-1.5 rounded-2xl">
+        <header className="w-full py-4 px-6 bg-base-300 grid grid-cols-[auto_1fr_auto] items-center gap-4 sticky top-0 left-0 z-50">
+            <nav className="flex gap-4 bg-transparent border border-base-100 px-3 py-1.5 rounded-2xl">
                 <div className="dropdown dropdown-start">
                     <div
                         tabIndex={0}
@@ -55,33 +56,49 @@ function DefaultHeader() {
                     </ul>
                 </div>
             </nav>
-            <h1 className="text-2xl font-bold">Neogend</h1>
+            <h1 className="text-2xl font-bold justify-self-center text-center select-none">
+                Neogend
+            </h1>
 
-            <div className="bg-transparent p-3 rounded-2xl border border-base-100 px-3 py-1.5">
-                <div className="dropdown dropdown-end">
-                    <div
-                        tabIndex={0}
-                        role="button"
-                        className="btn btn-ghost btn-circle w-fit h-fit"
-                    >
-                        <UserRoundCog
-                            size={28}
-                            style={{ color: "var(--color-base-content)" }}
-                        />
-                    </div>
-                    <ul
-                        tabIndex={0}
-                        className="menu menu-md dropdown-content bg-base-200 border border-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow"
-                    >
-                        <PageMenuLink name="Profil" path="/profile" />
-                        <PageMenuLink name="Paramètres" path="/settings" />
-                        <button
-                            onClick={handleLogout}
-                            className="btn btn-error btn-outline"
+            <div className="flex items-center gap-4 justify-self-end">
+                <span className="hidden md:inline-block">
+                    {user?.inscription_status === "valid" ? (
+                        <span className="status status-success"></span>
+                    ) : (
+                        <span className="status status-warning"></span>
+                    )}
+                    {" " +
+                        formatName(user?.first_name) +
+                        " " +
+                        user?.last_name.slice(0, 1).toUpperCase() +
+                        "."}
+                </span>
+                <div className="bg-transparent p-3 rounded-2xl border border-base-100 px-3 py-1.5">
+                    <div className="dropdown dropdown-end">
+                        <div
+                            tabIndex={0}
+                            role="button"
+                            className="btn btn-ghost btn-circle w-fit h-fit"
                         >
-                            Déconnexion
-                        </button>
-                    </ul>
+                            <UserRoundCog
+                                size={28}
+                                style={{ color: "var(--color-base-content)" }}
+                            />
+                        </div>
+                        <ul
+                            tabIndex={0}
+                            className="menu menu-md dropdown-content bg-base-200 border border-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow"
+                        >
+                            <PageMenuLink name="Profil" path="/profile" />
+                            <PageMenuLink name="Paramètres" path="/settings" />
+                            <button
+                                onClick={handleLogout}
+                                className="btn btn-error btn-outline"
+                            >
+                                Déconnexion
+                            </button>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </header>

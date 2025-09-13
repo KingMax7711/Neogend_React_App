@@ -39,34 +39,11 @@ function AdminHomePage() {
     const [usersList, setUsersList] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-    const [changeErrorMessage, setChangeErrorMessage] = useState("");
     const [createUserLoading, setCreateUserLoading] = useState(false);
     const [createUserError, setCreateUserError] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
     const firstLoadRef = useRef(true);
     const prevHashRef = useRef("");
-
-    const handlePrivilegeChange = (userId, newPrivilege) => {
-        let selectedUser = usersList.find((u) => u.id === userId);
-        setChangeErrorMessage("");
-        if (!selectedUser) return;
-
-        axios
-            .post(
-                `${API}/admin/set_user_privileges/${userId}`,
-                { privilege: newPrivilege },
-                {
-                    headers: { Authorization: `Bearer ${token}` },
-                },
-            )
-            .then(() => {
-                selectedUser.privileges = newPrivilege;
-                setUsersList([...usersList]);
-            })
-            .catch((err) => {
-                console.error("Error changing user privileges:", err);
-                setChangeErrorMessage(err.response?.data.detail || "Unknown error");
-            });
-    };
 
     const deleteUserHandler = (userId) => {
         axios
@@ -138,9 +115,9 @@ function AdminHomePage() {
                         email: u?.email ?? "",
                         first_name: u?.first_name ?? u?.firstName ?? "",
                         last_name: u?.last_name ?? u?.lastName ?? "",
+                        rp_nipol: u?.rp_nipol ?? u?.nipol ?? "",
                         privileges: u?.privileges ?? "player",
-                        is_admin: Boolean(u?.is_admin ?? u?.isAdmin ?? false),
-                        created_at: u?.created_at ?? null,
+                        inscription_date: u?.inscription_date ?? null,
                     }))
                     .sort(
                         (a, b) =>
@@ -199,7 +176,8 @@ function AdminHomePage() {
             clearInterval(intervalId);
             document.removeEventListener("visibilitychange", onVisibility);
         };
-    }, [token, user, usersList]);
+        // NOTE: on NE met PAS usersList en dépendance pour éviter des fetchs en boucle.
+    }, [token, user]);
 
     const TableRow = ({ u }) => (
         <tr key={u.id}>
@@ -216,6 +194,14 @@ function AdminHomePage() {
                     u.last_name.slice(0, 1).toUpperCase() +
                     "."}
             </td>
+            <td>
+                {u.rp_service === "gn" ? (
+                    <span className="status status-primary"></span>
+                ) : (
+                    <span className="status status-info"></span>
+                )}{" "}
+                <span className="italic">{u.rp_nipol}</span>
+            </td>
 
             <td>{u.email}</td>
             <td>
@@ -231,25 +217,9 @@ function AdminHomePage() {
                 </span>
             </td>
             <td>
-                <select
-                    name="privileges"
-                    id=""
-                    className="select select-bordered"
-                    value={u.privileges}
-                    onChange={(e) => handlePrivilegeChange(u.id, e.target.value)}
-                >
-                    <option value="owner">Propriétaire</option>
-                    <option value="admin">Admin</option>
-                    <option value="mod">Modérateur</option>
-                    <option value="player">Joueur</option>
-                </select>
-            </td>
-            <td>
                 <Link
                     className="btn btn-primary btn-outline w-30"
                     to={`/admin/user/${u.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
                 >
                     Consulter
                 </Link>
@@ -301,26 +271,10 @@ function AdminHomePage() {
                     )}
                 </span>
             </div>
-            <div className="flex flex-col gap-2 mt-2">
-                <label className="font-bold">Changer l'autorisation :</label>
-                <select
-                    name="privileges"
-                    className="select select-bordered w-full"
-                    value={u.privileges}
-                    onChange={(e) => handlePrivilegeChange(u.id, e.target.value)}
-                >
-                    <option value="owner">Propriétaire</option>
-                    <option value="admin">Admin</option>
-                    <option value="mod">Modérateur</option>
-                    <option value="player">Joueur</option>
-                </select>
-            </div>
             <div className="flex gap-2 mt-2">
                 <Link
                     className="btn btn-primary btn-outline flex-1"
                     to={`/admin/user/${u.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
                 >
                     Consulter
                 </Link>
@@ -336,6 +290,14 @@ function AdminHomePage() {
 
     // Sort usersList by ID before rendering
     const sortedUsersList = [...usersList].sort((a, b) => (a.id ?? 0) - (b.id ?? 0));
+
+    // Normalisation pour recherche (supprime accents + lower)
+    const norm = (str) =>
+        (str || "")
+            .toString()
+            .normalize("NFD")
+            .replace(/\p{Diacritic}/gu, "")
+            .toLowerCase();
 
     const serviceList = [
         "Gendarmerie Nationale",
@@ -397,7 +359,24 @@ function AdminHomePage() {
         watch,
         formState: { errors },
     } = useForm();
-
+    const filterUsers = (list, termRaw) => {
+        const term = norm(termRaw.trim());
+        if (!term) return list;
+        return list.filter((u) => {
+            const fullName = norm(`${u.first_name || ""} ${u.last_name || ""}`);
+            const emailN = norm(u.email);
+            const idN = String(u.id || "");
+            const privRaw = norm(u.privileges);
+            const privFront = norm(privilegesToFront(u.privileges));
+            return (
+                fullName.includes(term) ||
+                emailN.includes(term) ||
+                idN.includes(term) ||
+                privRaw.includes(term) ||
+                privFront.includes(term)
+            );
+        });
+    };
     return (
         <AdminAuthCheck>
             <Renamer pageTitle={"Admin - Neogend"} />
@@ -410,7 +389,6 @@ function AdminHomePage() {
                             <h2 className="mb-2 text-center font-bold text-lg">
                                 Authentification
                             </h2>
-                            {/* User Details */}
                             <div className="flex">
                                 <span className="font-bold">
                                     {privilegesToFront(user?.privileges)} :
@@ -432,7 +410,6 @@ function AdminHomePage() {
                             <p className="mb-4 text-center italic">
                                 Permet la consultation et la modification des fichiers
                             </p>
-                            {/* Files Grid */}
                             <div className="grid grid-cols-1 xxl:grid-cols-2 gap-2">
                                 {filesList.map((fileName) => (
                                     <FileInspectGridCase
@@ -447,34 +424,86 @@ function AdminHomePage() {
                         <h2 className="text-2xl font-bold mb-4 text-center w-fit">
                             Gestion des Utilisateurs
                         </h2>
+                        <div className="w-full flex flex-col items-center gap-2">
+                            <div className="flex items-center gap-2 w-full justify-center">
+                                <input
+                                    type="text"
+                                    name="search"
+                                    id="search"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="input input-bordered w-full md:w-1/2 lg:w-1/3"
+                                    placeholder="Rechercher (nom, email, id, privilège)"
+                                    autoComplete="off"
+                                />
+                                {searchTerm && (
+                                    <button
+                                        className="btn btn-warning btn-sm"
+                                        onClick={() => setSearchTerm("")}
+                                        type="button"
+                                    >
+                                        Effacer
+                                    </button>
+                                )}
+                            </div>
+                        </div>
                         {loading ? (
                             <div>Loading users...</div>
                         ) : error ? (
-                            <div>Error loading users</div>
+                            <div className="text-error">{error}</div>
                         ) : (
-                            <div>
+                            <>
                                 <div className="md:block hidden overflow-x-auto rounded-box border border-base-content/5 bg-base-100 w-fit">
                                     <table className="table">
                                         <thead>
                                             <tr className="text-center">
                                                 <th>Id</th>
                                                 <th>Nom</th>
+                                                <th>NIPOL/NIGEND</th>
                                                 <th>Email</th>
                                                 <th>Autorisation</th>
-                                                <th>Changer les Autorisations</th>
                                                 <th>Profil</th>
                                                 <th>Supprimer</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {sortedUsersList.map((u) => (
-                                                <TableRow key={u.id} u={u} />
-                                            ))}
+                                            {(() => {
+                                                const filtered = filterUsers(
+                                                    sortedUsersList,
+                                                    searchTerm,
+                                                );
+                                                if (!filtered.length)
+                                                    return (
+                                                        <tr>
+                                                            <td
+                                                                colSpan={6}
+                                                                className="text-center italic opacity-60"
+                                                            >
+                                                                Aucun utilisateur trouvé
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                return filtered.map((u) => (
+                                                    <TableRow key={u.id} u={u} />
+                                                ));
+                                            })()}
                                         </tbody>
                                     </table>
                                 </div>
                                 <div className="md:hidden block">
-                                    {sortedUsersList.map((u) => userMobileCard(u))}
+                                    {(() => {
+                                        const filtered = filterUsers(
+                                            sortedUsersList,
+                                            searchTerm,
+                                        );
+                                        if (!filtered.length)
+                                            return (
+                                                <div className="text-center italic opacity-60 mt-2">
+                                                    Aucun utilisateur trouvé
+                                                </div>
+                                            );
+                                        return filtered.map((u) => userMobileCard(u));
+                                    })()}
                                 </div>
                                 <div className="mt-4 flex justify-center">
                                     <button
@@ -839,12 +868,7 @@ function AdminHomePage() {
                                         </form>
                                     </dialog>
                                 </div>
-                            </div>
-                        )}
-                        {changeErrorMessage && (
-                            <div className="badge badge-error badge-sm md:badge-lg mt-2">
-                                {changeErrorMessage}
-                            </div>
+                            </>
                         )}
                     </div>
                 </div>
