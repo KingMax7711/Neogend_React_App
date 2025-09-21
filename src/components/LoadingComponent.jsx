@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-function LoadingComponent() {
+function LoadingComponent({ message = "Chargement..." }) {
     const [showEasterEgg, setShowEasterEgg] = useState(false);
 
     useEffect(() => {
@@ -15,7 +15,7 @@ function LoadingComponent() {
             <div className="flex flex-col justify-center items-center">
                 <div className="flex bg-base-200 p-6 rounded-3xl shadow-lg gap-4 w-fit">
                     <span className="loading loading-spinner"></span>
-                    <span>Chargement...</span>
+                    <span>{message}</span>
                 </div>
                 {showEasterEgg && (
                     <div className="mt-8 text-center">

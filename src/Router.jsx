@@ -7,6 +7,8 @@ import AdminUserPage from "./pages/AdminOnlyPage.jsx";
 import AdminProfilePage from "./pages/AdminProfilesPage.jsx";
 import AdminHomePage from "./pages/AdminHomePage.jsx";
 import ProfilePage from "./pages/ProfilesPages.jsx";
+import AdminPropioPage from "./pages/AdminPropioPage.jsx";
+import UnfindPage from "./pages/UnfindPage.jsx";
 
 const router = createBrowserRouter([
     {
@@ -43,12 +45,16 @@ const router = createBrowserRouter([
                 element: <AdminProfilePage />,
             },
             {
+                path: "admin/files/proprio",
+                element: <AdminPropioPage />,
+            },
+            {
                 path: "profile",
                 element: <ProfilePage />,
             },
             {
                 path: "*",
-                element: <div>Page non trouvée</div>,
+                element: <UnfindPage />,
             },
         ],
     },

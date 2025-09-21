@@ -1,6 +1,6 @@
 import React from "react";
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import API from "../global/API";
@@ -18,17 +18,30 @@ import { frontToAffectation } from "../tools/affectationTranslate";
 import { frontToGrades } from "../tools/gradesTranslate";
 import { frontToService } from "../tools/serviceTranslate";
 
-const filesList = ["fnpc", "siv", "fpr", "taj", "foves", "fijait"];
+const filesList = [
+    { name: "fnpc", fullName: "Fichier National des Permis de Conduire" },
+    { name: "siv", fullName: "Système d'Immatriculation des Véhicules" },
+    { name: "fpr", fullName: "Fichier des Personnes Recherchées" },
+    { name: "taj", fullName: "Titre d'Antécédents Judiciaires" },
+    { name: "foves", fullName: "Fichier des Objets et des Véhicules Signalés" },
+    { name: "fijait", fullName: "Fichier des Auteurs d'Infraction Terroristes" },
+    { name: "proprio", fullName: "Propriétaire" },
+];
 
-function FileInspectGridCase({ fileName }) {
+function FileInspectGridCase({ fileName, fullName }) {
     return (
         <div className="bg-base-100 p-6 rounded-3xl shadow-lg border border-primary">
             <div className="flex flex-col items-center xl:justify-between">
                 <span className="font-bold">{fileName.toUpperCase()}</span>
                 <div className="flex gap-1">
-                    <button className="btn btn-info btn-sm">Consulter</button>
-                    <button className="btn btn-warning btn-sm">Editer</button>
+                    <Link
+                        to={`/admin/files/${fileName}`}
+                        className="btn btn-warning btn-sm"
+                    >
+                        Consulter
+                    </Link>
                 </div>
+                <p className="italic text-center mt-2 text-sm">{fullName}</p>
             </div>
         </div>
     );
@@ -147,11 +160,12 @@ function AdminHomePage() {
                 }
             } catch (err) {
                 console.error("Error fetching users:", err);
-                if (!cancelled)
+                if (!cancelled) {
                     setError(
                         err?.response?.data?.detail ||
                             "Impossible de charger les utilisateurs.",
                     );
+                }
             } finally {
                 if (!cancelled) {
                     setLoading(false);
@@ -226,11 +240,41 @@ function AdminHomePage() {
             </td>
             <td>
                 <button
-                    className="btn btn-error btn-outline w-30"
-                    onClick={() => deleteUserHandler(u.id)}
+                    className={clsx("btn btn-error btn-outline w-30", {
+                        "btn-disabled": u.id === user?.id,
+                    })}
+                    onClick={() =>
+                        document.getElementById(`delete_user_modal_${u.id}`).showModal()
+                    }
                 >
-                    Supprimer
+                    {u.id === user?.id ? "Non Non :)" : "Supprimer"}
                 </button>
+                <dialog id={`delete_user_modal_${u.id}`} className="modal">
+                    <form method="dialog" className="modal-box">
+                        <h2 className="font-bold text-lg text-center">
+                            Supprimer l'utilisateur
+                        </h2>
+                        <p className="text-center italic">
+                            Vous êtes sur le point de supprimer définitivement cet
+                            utilisateur.
+                        </p>
+                        <p className="text-center">
+                            {formatName(u.first_name)}{" "}
+                            {u.last_name.slice(0, 1).toUpperCase()}.
+                        </p>
+                        <div className="modal-action flex justify-center">
+                            <button
+                                className="btn btn-error btn-outline"
+                                onClick={() => deleteUserHandler(u.id)}
+                            >
+                                Supprimer
+                            </button>
+                            <button className="btn btn-primary btn-outline">
+                                Annuler
+                            </button>
+                        </div>
+                    </form>
+                </dialog>
             </td>
         </tr>
     );
@@ -242,6 +286,11 @@ function AdminHomePage() {
         >
             <div className="flex justify-between items-center">
                 <span className="font-bold text-lg">
+                    {u.inscription_status === "valid" ? (
+                        <span className="status status-success"></span>
+                    ) : (
+                        <span className="status status-warning"></span>
+                    )}{" "}
                     {formatName(u.first_name)} {u.last_name.slice(0, 1).toUpperCase()}.
                 </span>
                 <span
@@ -258,6 +307,12 @@ function AdminHomePage() {
             <div className="flex flex-col gap-1">
                 <span>
                     <span className="font-bold">ID :</span> {u.id}
+                </span>
+                <span>
+                    <span className="font-bold">
+                        {u.rp_service == "gn" ? "NIGEND" : "NIPOL"}
+                    </span>{" "}
+                    {u.rp_nipol}
                 </span>
                 <span>
                     <span className="font-bold">Email :</span> {u.email}
@@ -280,10 +335,40 @@ function AdminHomePage() {
                 </Link>
                 <button
                     className="btn btn-error btn-outline flex-1"
-                    onClick={() => deleteUserHandler(u.id)}
+                    onClick={() =>
+                        document
+                            .getElementById(`delete_user_modal_mobile_${u.id}`)
+                            .showModal()
+                    }
                 >
                     Supprimer
                 </button>
+                <dialog id={`delete_user_modal_mobile_${u.id}`} className="modal">
+                    <form method="dialog" className="modal-box">
+                        <h2 className="font-bold text-lg text-center">
+                            Supprimer l'utilisateur
+                        </h2>
+                        <p className="text-center italic">
+                            Vous êtes sur le point de supprimer définitivement cet
+                            utilisateur.
+                        </p>
+                        <p className="text-center">
+                            {formatName(u.first_name)}{" "}
+                            {u.last_name.slice(0, 1).toUpperCase()}.
+                        </p>
+                        <div className="modal-action flex justify-center">
+                            <button
+                                className="btn btn-error btn-outline"
+                                onClick={() => deleteUserHandler(u.id)}
+                            >
+                                Supprimer
+                            </button>
+                            <button className="btn btn-primary btn-outline">
+                                Annuler
+                            </button>
+                        </div>
+                    </form>
+                </dialog>
             </div>
         </div>
     );
@@ -366,12 +451,14 @@ function AdminHomePage() {
             const fullName = norm(`${u.first_name || ""} ${u.last_name || ""}`);
             const emailN = norm(u.email);
             const idN = String(u.id || "");
+            const nipolN = String(u.rp_nipol || "");
             const privRaw = norm(u.privileges);
             const privFront = norm(privilegesToFront(u.privileges));
             return (
                 fullName.includes(term) ||
                 emailN.includes(term) ||
                 idN.includes(term) ||
+                nipolN.includes(term) ||
                 privRaw.includes(term) ||
                 privFront.includes(term)
             );
@@ -413,8 +500,9 @@ function AdminHomePage() {
                             <div className="grid grid-cols-1 xxl:grid-cols-2 gap-2">
                                 {filesList.map((fileName) => (
                                     <FileInspectGridCase
-                                        key={fileName}
-                                        fileName={fileName}
+                                        key={fileName.name}
+                                        fileName={fileName.name}
+                                        fullName={fileName.fullName}
                                     />
                                 ))}
                             </div>
@@ -854,6 +942,10 @@ function AdminHomePage() {
                                                             "Créer"
                                                         )}
                                                     </button>
+                                                    <p className="italic text-center">
+                                                        Par défaut le mot de passe d'un
+                                                        nouveau compte est : "temporaire"
+                                                    </p>
                                                     {createUserError && (
                                                         <div className="text-error mt-2  text-center">
                                                             {createUserError}

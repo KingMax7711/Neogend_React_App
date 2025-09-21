@@ -1,32 +1,45 @@
-import { Children, useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../stores/authStore";
 import LoadingComponent from "./LoadingComponent";
 
+// Nouveau guard basé sur la state machine du store
+// Etats: initializing | recovering | authenticated | unauthenticated | forced-logout
+// Comportement:
+//  - initializing / recovering : tenter ensureSession puis afficher loading avec message approprié
+//  - authenticated : afficher children
+//  - forced-logout / unauthenticated : redirect /login
+
 function AuthCheck({ children }) {
     const navigate = useNavigate();
-    const { token, refreshAccess, clearAuth } = useAuthStore();
-    const [loading, setLoading] = useState(true);
+    const { status, user, ensureSession } = useAuthStore();
+    const triedRef = useRef(false); // éviter double ensure initial dû à StrictMode
 
     useEffect(() => {
-        const init = async () => {
-            if (!token) {
-                try {
-                    await refreshAccess(); // récupère un nouveau token
-                    // eslint-disable-next-line no-unused-vars
-                } catch (err) {
-                    clearAuth();
-                    navigate("/login");
-                }
-            }
-            setLoading(false);
-        };
+        // Redirections immédiates si fin de session
+        if (status === "forced-logout" || status === "unauthenticated") {
+            navigate("/login", { replace: true });
+            return;
+        }
 
-        init();
-    }, [token, navigate, refreshAccess, clearAuth]);
+        // Lancer ensureSession seulement si on est en phase de (re)construction
+        if ((status === "initializing" || status === "recovering") && !triedRef.current) {
+            triedRef.current = true;
+            ensureSession().catch(() => {
+                // L'état du store (status/error) pilote l'affichage; on ne gère rien ici
+            });
+        }
+    }, [status, ensureSession, navigate]);
 
-    if (loading) return <LoadingComponent />;
-    return <>{children}</>; // invisible, il ne sert qu’à gérer l’auth
+    if (status === "authenticated" && user) return <>{children}</>;
+
+    if (status === "initializing")
+        return <LoadingComponent message="Chargement de la session..." />;
+    if (status === "recovering")
+        return <LoadingComponent message="Reconnexion en cours..." />;
+
+    // Par sécurité: autres états -> loading bref avant redirect effect
+    return <LoadingComponent message="Redirection..." />;
 }
 
 export default AuthCheck;

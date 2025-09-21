@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { Mail, KeyRound } from "lucide-react";
+import { IdCardLanyard, KeyRound } from "lucide-react";
 import axios from "axios";
 import clsx from "clsx";
 import API from "../global/API";
-import { useAuthStore } from "../stores/authStore";
+import { useAuthStore, initializeSessionFromToken } from "../stores/authStore";
 import "../App.css";
 import gign1Img from "../assets/gign1.jpeg";
 
@@ -16,24 +16,29 @@ function LoginPage() {
     const [connectionStatus, setConnectionStatus] = useState(true);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    const { refreshAccess, setToken } = useAuthStore();
+    const { ensureSession, status, user } = useAuthStore();
 
     useEffect(() => {
-        document.title = "Login";
-        if (didCheckCookie) return;
-        didCheckCookie = true;
-
-        const checkCookie = async () => {
-            try {
-                const isValid = await refreshAccess();
-                console.log("Old Session Found, Redirecting to Home");
-                setLoading(isValid);
-                if (isValid) navigate("/home");
-            } catch (error) {
-                console.error("Error checking cookie:", error);
-            }
-        };
-        checkCookie();
+        document.title = "Connexion - Neogend";
+        if (!didCheckCookie) {
+            didCheckCookie = true;
+            const tryRecover = async () => {
+                if (user && status === "authenticated") {
+                    navigate("/home");
+                    return;
+                }
+                try {
+                    const me = await ensureSession();
+                    if (me) {
+                        console.log("[LOGIN] Session existante -> redirection");
+                        navigate("/home");
+                    }
+                } catch {
+                    // pas de session valide: on reste sur la page
+                }
+            };
+            tryRecover();
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // pas de deps pour éviter les relances
 
@@ -47,7 +52,7 @@ function LoginPage() {
         if (loading) return; // Prevent multiple submissions
         setErrorMsg(""); // Reset error message
         const params = new URLSearchParams();
-        params.append("username", data.email);
+        params.append("username", data.nipol);
         params.append("password", data.password);
 
         try {
@@ -56,8 +61,14 @@ function LoginPage() {
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
                 withCredentials: true, // Important for sending cookies
             });
-            setToken(response.data.access_token); // Set the token in the store
-            navigate("/home"); // Redirect to home page
+            const access = response.data.access_token;
+            await initializeSessionFromToken(access);
+            // Après initialisation, vérifier si authentifié
+            if (useAuthStore.getState().status === "authenticated") {
+                navigate("/home");
+            } else {
+                setErrorMsg("Impossible de finaliser la session.");
+            }
         } catch (error) {
             console.log(error);
             if (error.response && error.response.status === 401) {
@@ -87,19 +98,21 @@ function LoginPage() {
                         </div>
                         <div className="flex flex-col gap-4 md:min-w-80">
                             <div
-                                className={clsx("input", { "input-error": errors.email })}
+                                className={clsx("input", { "input-error": errors.nipol })}
                             >
-                                <Mail />
+                                <IdCardLanyard />
                                 <input
-                                    type="email"
+                                    type="number"
                                     className=""
-                                    placeholder="Email"
-                                    {...register("email", { required: true })}
+                                    placeholder="NIPOL/NIGEND"
+                                    {...register("nipol", { required: true })}
                                 />
                             </div>
 
-                            {errors.email && (
-                                <div className="badge badge-error">Email is required</div>
+                            {errors.nipol && (
+                                <div className="badge badge-error">
+                                    NIPOL/NIGEND is required
+                                </div>
                             )}
                             <div
                                 className={clsx("input", {

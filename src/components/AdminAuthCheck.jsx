@@ -1,52 +1,44 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../stores/authStore";
 import LoadingComponent from "./LoadingComponent";
 
+// Guard admin: même logique qu'AuthCheck mais ajoute contrôle privilèges
+// Redirections:
+//  - forced-logout / unauthenticated -> /login
+//  - authenticated sans privilège admin/owner -> /home
+
 function AdminAuthCheck({ children }) {
     const navigate = useNavigate();
-    const { token, user, refreshAccess, fetchMe, clearAuth } = useAuthStore();
-    const [loading, setLoading] = useState(true);
+    const { status, user, ensureSession } = useAuthStore();
+    const triedRef = useRef(false);
+    const allowed = ["admin", "owner"]; // privileges autorisés
 
     useEffect(() => {
-        let cancelled = false;
-        const accesGranted = ["admin", "owner"];
+        if (status === "forced-logout" || status === "unauthenticated") {
+            navigate("/login", { replace: true });
+            return;
+        }
+        if ((status === "initializing" || status === "recovering") && !triedRef.current) {
+            triedRef.current = true;
+            ensureSession().catch(() => {});
+        }
+    }, [status, ensureSession, navigate]);
 
-        const init = async () => {
-            try {
-                // 1) S’assurer d’avoir un access token (via refresh cookie si besoin)
-                if (!token) {
-                    await refreshAccess(); // peut throw si pas de refresh cookie
-                }
+    if (status === "authenticated" && user) {
+        if (!allowed.includes(user.privileges)) {
+            navigate("/home", { replace: true });
+            return <LoadingComponent message="Redirection..." />;
+        }
+        return <>{children}</>;
+    }
 
-                // 2) S’assurer d’avoir l’utilisateur hydraté
-                let u = user;
-                if (!u) {
-                    u = await fetchMe(); // peut throw si token invalide
-                }
+    if (status === "initializing")
+        return <LoadingComponent message="Chargement de la session..." />;
+    if (status === "recovering")
+        return <LoadingComponent message="Reconnexion en cours..." />;
 
-                // 3) Vérifier le rôle staff
-                if (u && !accesGranted.includes(u.privileges)) {
-                    navigate("/home", { replace: true });
-                    return;
-                }
-
-                if (!cancelled) setLoading(false);
-            } catch {
-                // Pas connecté ou token invalide -> login
-                clearAuth();
-                navigate("/login", { replace: true });
-            }
-        };
-
-        init();
-        return () => {
-            cancelled = true;
-        };
-    }, [token, user, refreshAccess, fetchMe, clearAuth, navigate]);
-
-    if (loading) return <LoadingComponent />; // rien ne s’affiche tant que non validé
-    return <>{children}</>;
+    return <LoadingComponent message="Redirection..." />;
 }
 
 export default AdminAuthCheck;

@@ -5,11 +5,11 @@ import { useAuthStore } from "../stores/authStore";
 import clsx from "clsx";
 
 function DefaultHeader() {
-    const { user, clearAuth } = useAuthStore();
+    const { user, endSession } = useAuthStore();
     const navigate = useNavigate();
 
     const handleLogout = async () => {
-        await clearAuth();
+        await endSession();
         navigate("/login");
     };
 

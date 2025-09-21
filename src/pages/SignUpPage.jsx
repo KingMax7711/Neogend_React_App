@@ -11,30 +11,31 @@ let didCheckCookie = false; // garde module (persiste entre montages StrictMode)
 
 function SignUpPage() {
     const navigate = useNavigate();
-    const { refreshAccess } = useAuthStore();
+    const { ensureSession, status, user } = useAuthStore();
 
     useEffect(() => {
         document.title = "Inscription - Neogend";
-    }, []);
-
-    useEffect(() => {
-        if (didCheckCookie) return;
-        didCheckCookie = true;
-
-        const checkCookie = async () => {
-            try {
-                const isValid = await refreshAccess();
-                if (isValid) {
-                    console.log("Old Session Found, Redirecting to Home");
+        if (!didCheckCookie) {
+            didCheckCookie = true;
+            const tryRecover = async () => {
+                if (user && status === "authenticated") {
                     navigate("/home");
+                    return;
                 }
-            } catch (error) {
-                console.warn("Error checking cookie:", error);
-            }
-        };
-        checkCookie();
+                try {
+                    const me = await ensureSession();
+                    if (me) {
+                        console.log("[REGISTER] Session existante -> redirection");
+                        navigate("/home");
+                    }
+                } catch {
+                    // rester sur inscription
+                }
+            };
+            tryRecover();
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); // pas de deps pour éviter les relances
+    }, []); // pas de deps pour éviter les relances // pas de deps pour éviter les relances
 
     return (
         <div className="flex flex-col gap-4 min-h-screen w-screen items-center justify-center bg-base-300">
