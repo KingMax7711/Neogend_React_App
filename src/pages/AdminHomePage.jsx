@@ -1,6 +1,6 @@
 import React from "react";
 import { useState, useEffect, useRef } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import API from "../global/API";
@@ -10,7 +10,6 @@ import DefaultHeader from "../components/Header";
 import AdminAuthCheck from "../components/AdminAuthCheck";
 import { useAuthStore } from "../stores/authStore";
 import { privilegesToFront } from "../tools/privilegesTranslate";
-import { Eye, PencilLine } from "lucide-react";
 import formatName from "../tools/formatName";
 import clsx from "clsx";
 import { frontToServer } from "../tools/serverTranslate";
@@ -180,7 +179,7 @@ function AdminHomePage() {
         };
 
         fetchUsers();
-        const intervalId = setInterval(poll, 10000);
+        const intervalId = setInterval(poll, 30000);
         const onVisibility = () => {
             if (!document.hidden) fetchUsers();
         };

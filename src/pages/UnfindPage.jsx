@@ -8,7 +8,7 @@ function UnfindPage() {
                 <p className="text-6xl font-bold mb-2">404</p>
                 <p>Désolé, la page que vous recherchez n'existe pas.</p>
 
-                <Link to="/" className="btn btn-primary">
+                <Link to="/home" className="btn btn-primary">
                     Retourner à la page d'accueil
                 </Link>
                 <p className="italic text-sm text-center mt-4">
