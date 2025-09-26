@@ -21,7 +21,7 @@ import clsx from "clsx";
 import "../App.css";
 
 function ProfilePage() {
-    const { user, token, clearAuth } = useAuthStore();
+    const { user, token, endSession } = useAuthStore();
     const navigate = useNavigate();
 
     // Formulaire changement de mot de passe
@@ -64,7 +64,7 @@ function ProfilePage() {
             setPwdSuccess("Mot de passe mis à jour. Reconnexion...");
             reset();
             setTimeout(async () => {
-                await clearAuth(); // nettoie token + user
+                await endSession(); // nettoie token + user
                 navigate("/login");
             }, 1500);
         } catch (e) {

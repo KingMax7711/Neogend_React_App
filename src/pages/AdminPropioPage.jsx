@@ -11,6 +11,7 @@ import AdminAuthCheck from "../components/AdminAuthCheck.jsx";
 import Renamer from "../components/Renamer.jsx";
 import DefaultHeader from "../components/Header.jsx";
 import formatName from "../tools/formatName.js";
+import { dbDateToFront } from "../tools/dateTranslate.js";
 
 function AdminPropioPage() {
     const { user, token } = useAuthStore();
@@ -161,7 +162,11 @@ function AdminPropioPage() {
                 <td>
                     {prop.second_prenom != "" ? formatName(prop.second_prenom) : "N/A"}
                 </td>
-                <td>{prop.date_naissance != "" ? prop.date_naissance : "N/A"}</td>
+                <td>
+                    {prop.date_naissance != ""
+                        ? dbDateToFront(prop.date_naissance)
+                        : "N/A"}
+                </td>
                 <td>
                     {prop.sexe != "" ? (prop.sexe == "male" ? "Homme" : "Femme") : "N/A"}
                 </td>
@@ -485,42 +490,6 @@ function AdminPropioPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div className="form-control">
                                     <label className="label">
-                                        <span className="label-text">Nom de famille</span>
-                                    </label>
-                                    <input
-                                        className={clsx("input input-bordered", {
-                                            "input-error": errors.nom_famille,
-                                        })}
-                                        aria-invalid={!!errors.nom_famille}
-                                        {...register("nom_famille", {
-                                            required: "Le nom de famille est requis",
-                                        })}
-                                    />
-                                    {errors.nom_famille && (
-                                        <span className="text-error text-xs mt-1">
-                                            {errors.nom_famille.message}
-                                        </span>
-                                    )}
-                                </div>
-                                <div className="form-control">
-                                    <label className="label">
-                                        <span className="label-text">Nom d'usage</span>
-                                    </label>
-                                    <input
-                                        className={clsx("input input-bordered", {
-                                            "input-error": errors.nom_usage,
-                                        })}
-                                        aria-invalid={!!errors.nom_usage}
-                                        {...register("nom_usage")}
-                                    />
-                                    {errors.nom_usage && (
-                                        <span className="text-error text-xs mt-1">
-                                            {errors.nom_usage.message}
-                                        </span>
-                                    )}
-                                </div>
-                                <div className="form-control">
-                                    <label className="label">
                                         <span className="label-text">Prénom</span>
                                     </label>
                                     <input
@@ -552,6 +521,42 @@ function AdminPropioPage() {
                                     {errors.second_prenom && (
                                         <span className="text-error text-xs mt-1">
                                             {errors.second_prenom.message}
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="form-control">
+                                    <label className="label">
+                                        <span className="label-text">Nom de famille</span>
+                                    </label>
+                                    <input
+                                        className={clsx("input input-bordered", {
+                                            "input-error": errors.nom_famille,
+                                        })}
+                                        aria-invalid={!!errors.nom_famille}
+                                        {...register("nom_famille", {
+                                            required: "Le nom de famille est requis",
+                                        })}
+                                    />
+                                    {errors.nom_famille && (
+                                        <span className="text-error text-xs mt-1">
+                                            {errors.nom_famille.message}
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="form-control">
+                                    <label className="label">
+                                        <span className="label-text">Nom d'usage</span>
+                                    </label>
+                                    <input
+                                        className={clsx("input input-bordered", {
+                                            "input-error": errors.nom_usage,
+                                        })}
+                                        aria-invalid={!!errors.nom_usage}
+                                        {...register("nom_usage")}
+                                    />
+                                    {errors.nom_usage && (
+                                        <span className="text-error text-xs mt-1">
+                                            {errors.nom_usage.message}
                                         </span>
                                     )}
                                 </div>
@@ -718,7 +723,7 @@ function AdminPropioPage() {
                                         <span className="label-text">Nom de voie</span>
                                     </label>
                                     <input
-                                        className={clsx("input input-bordered", {
+                                        className={clsx("input input-bordered w-full", {
                                             "input-error": errors.adresse_nom_voie,
                                         })}
                                         aria-invalid={!!errors.adresse_nom_voie}

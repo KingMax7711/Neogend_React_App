@@ -25,6 +25,7 @@ const filesList = [
     { name: "foves", fullName: "Fichier des Objets et des Véhicules Signalés" },
     { name: "fijait", fullName: "Fichier des Auteurs d'Infraction Terroristes" },
     { name: "proprio", fullName: "Propriétaire" },
+    { name: "infrac", fullName: "Infractions" },
 ];
 
 function FileInspectGridCase({ fileName, fullName }) {
@@ -127,6 +128,8 @@ function AdminHomePage() {
                         email: u?.email ?? "",
                         first_name: u?.first_name ?? u?.firstName ?? "",
                         last_name: u?.last_name ?? u?.lastName ?? "",
+                        rp_first_name: u?.rp_first_name ?? u?.rpFirstName ?? "",
+                        rp_last_name: u?.rp_last_name ?? u?.rpLastName ?? "",
                         rp_nipol: u?.rp_nipol ?? u?.nipol ?? "",
                         privileges: u?.privileges ?? "player",
                         inscription_date: u?.inscription_date ?? null,
@@ -206,6 +209,15 @@ function AdminHomePage() {
                     " " +
                     u.last_name.slice(0, 1).toUpperCase() +
                     "."}
+            </td>
+            <td>
+                <span className="italic">
+                    {" " +
+                        formatName(u.rp_first_name) +
+                        " " +
+                        u.rp_last_name.slice(0, 1).toUpperCase() +
+                        "."}
+                </span>
             </td>
             <td>
                 {u.rp_service === "gn" ? (
@@ -448,6 +460,7 @@ function AdminHomePage() {
         if (!term) return list;
         return list.filter((u) => {
             const fullName = norm(`${u.first_name || ""} ${u.last_name || ""}`);
+            const fullRpName = norm(`${u.rp_first_name || ""} ${u.rp_last_name || ""}`);
             const emailN = norm(u.email);
             const idN = String(u.id || "");
             const nipolN = String(u.rp_nipol || "");
@@ -455,6 +468,7 @@ function AdminHomePage() {
             const privFront = norm(privilegesToFront(u.privileges));
             return (
                 fullName.includes(term) ||
+                fullRpName.includes(term) ||
                 emailN.includes(term) ||
                 idN.includes(term) ||
                 nipolN.includes(term) ||
@@ -520,7 +534,7 @@ function AdminHomePage() {
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     className="input input-bordered w-full md:w-1/2 lg:w-1/3"
-                                    placeholder="Rechercher (nom, email, id, privilège)"
+                                    placeholder="Rechercher (nom, allias, nigend...)"
                                     autoComplete="off"
                                 />
                                 {searchTerm && (
@@ -546,6 +560,7 @@ function AdminHomePage() {
                                             <tr className="text-center">
                                                 <th>Id</th>
                                                 <th>Nom</th>
+                                                <th>Allias</th>
                                                 <th>NIPOL/NIGEND</th>
                                                 <th>Email</th>
                                                 <th>Autorisation</th>

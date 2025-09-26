@@ -85,7 +85,7 @@ export const useAuthStore = create((set, get) => ({
             let token = get().token;
             try {
                 if (!token) {
-                    log("info", "Pas d'access token -> refresh direct");
+                    log("info", "Pas d'access token -> tentative de refresh");
                     token = await get().refreshAccess();
                 }
                 let me;

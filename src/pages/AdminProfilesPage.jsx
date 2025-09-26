@@ -571,7 +571,7 @@ function AdminProfilePage() {
                                 </h2>
                                 <div className="bg-base-300 p-4 rounded-xl flex flex-col gap-3">
                                     <h3 className="text-center italic">
-                                        Modification du Mot de Passe
+                                        Réinitialisation du Mot de Passe
                                     </h3>
                                     <button
                                         className="btn btn-warning"

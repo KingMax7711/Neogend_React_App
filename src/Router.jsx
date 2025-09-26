@@ -8,6 +8,8 @@ import AdminProfilePage from "./pages/AdminProfilesPage.jsx";
 import AdminHomePage from "./pages/AdminHomePage.jsx";
 import ProfilePage from "./pages/ProfilesPages.jsx";
 import AdminPropioPage from "./pages/AdminPropioPage.jsx";
+import AdminFnpcPage from "./pages/AdminFnpcPage.jsx";
+import AdminInfracPage from "./pages/AdminInfracPage.jsx";
 import UnfindPage from "./pages/UnfindPage.jsx";
 
 const router = createBrowserRouter([
@@ -47,6 +49,14 @@ const router = createBrowserRouter([
             {
                 path: "admin/files/proprio",
                 element: <AdminPropioPage />,
+            },
+            {
+                path: "admin/files/fnpc",
+                element: <AdminFnpcPage />,
+            },
+            {
+                path: "admin/files/infrac",
+                element: <AdminInfracPage />,
             },
             {
                 path: "profile",
