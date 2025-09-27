@@ -11,19 +11,17 @@ function HomePage() {
     const user = useAuthStore((s) => s.user);
 
     return (
-        <div className="min-h-screen bg-base-300">
-            <AuthCheck>
-                <Renamer pageTitle="Home Page" />
+        <AuthCheck>
+            <Renamer pageTitle="Home Page" />
+            <div>
                 <DefaultHeader />
+                <h1>Welcome to the Home Page</h1>
                 <div>
-                    <h1>Welcome to the Home Page</h1>
-                    <div>
-                        <h2>User Information:</h2>
-                        <pre>{JSON.stringify(user, null, 2)}</pre>
-                    </div>
+                    <h2>User Information:</h2>
+                    <pre>{JSON.stringify(user, null, 2)}</pre>
                 </div>
-            </AuthCheck>
-        </div>
+            </div>
+        </AuthCheck>
     );
 }
 

@@ -346,7 +346,7 @@ function AdminProfilePage() {
             ) : !checkUser ? (
                 <LoadingComponent />
             ) : (
-                <div className="min-h-screen bg-base-300">
+                <div className="">
                     <DefaultHeader />
                     <Renamer pageTitle={"Admin Profil - Neogend"} />
                     <div className="flex box-border flex-col items-top justify-center md:flex-row gap-4">

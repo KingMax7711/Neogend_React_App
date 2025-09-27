@@ -19,6 +19,7 @@ function AdminFnpcPage() {
     const [selectedId, setSelectedId] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [createError, setCreateError] = useState("");
     const firstLoadRef = useRef(true);
     const prevHashRef = useRef("");
     const firstPropLoadRef = useRef(true);
@@ -36,6 +37,7 @@ function AdminFnpcPage() {
         );
     };
 
+    // Fetch fnpc
     useEffect(() => {
         // Ne lance rien tant que le token n'est pas prêt ou que l'utilisateur n'est pas admin
         const accesGranted = ["admin", "owner"];
@@ -152,6 +154,7 @@ function AdminFnpcPage() {
         };
     }, [token, user]);
 
+    // Fetch proprietaires
     useEffect(() => {
         // Ne lance rien tant que le token n'est pas prêt ou que l'utilisateur n'est pas admin
         const accesGranted = ["admin", "owner"];
@@ -365,6 +368,8 @@ function AdminFnpcPage() {
         handleSubmit,
         reset,
         watch,
+        setValue,
+        getValues,
         formState: { isSubmitting, errors },
     } = useForm({
         defaultValues: {
@@ -413,6 +418,104 @@ function AdminFnpcPage() {
             prefecture_delivrance: "",
         },
     });
+
+    // Auto: date_expiration = date_delivrance + 15 ans (création uniquement)
+    const expirationManuallyEditedRef = useRef(false);
+    // Auto: probatoire -> date_probatoire = date_delivrance + 3 ans (création uniquement)
+    const probatoireManuallyEditedRef = useRef(false);
+    // Auto (catégories): mémorise si la date de chaque catégorie a été modifiée manuellement
+    const manualEditedCatDateRef = useRef({});
+    // Liste des catégories de permis (utilisée dans effets)
+    const CAT_KEYS = useMemo(
+        () => [
+            "am",
+            "a1",
+            "a2",
+            "a",
+            "b1",
+            "b",
+            "c1",
+            "c",
+            "d1",
+            "d",
+            "be",
+            "c1e",
+            "ce",
+            "d1e",
+            "de",
+        ],
+        [],
+    );
+
+    // Utilitaire: ajoute N années à une date YYYY-MM-DD
+    const addYears = (dateStr, years) => {
+        if (!dateStr) return "";
+        const [y, m, d] = String(dateStr)
+            .split("-")
+            .map((v) => Number(v));
+        if (!y || !m || !d) return "";
+        const dt = new Date(Date.UTC(y, m - 1, d));
+        dt.setUTCFullYear(dt.getUTCFullYear() + Number(years || 0));
+        const yyyy = dt.getUTCFullYear();
+        const mm = String(dt.getUTCMonth() + 1).padStart(2, "0");
+        const dd = String(dt.getUTCDate()).padStart(2, "0");
+        return `${yyyy}-${mm}-${dd}`;
+    };
+
+    // Quand on passe en création, on réactive l'auto-complétion; en édition, on la désactive
+    useEffect(() => {
+        if (selectedId == null) {
+            expirationManuallyEditedRef.current = false;
+            manualEditedCatDateRef.current = {};
+            probatoireManuallyEditedRef.current = false;
+        } else {
+            expirationManuallyEditedRef.current = true;
+        }
+    }, [selectedId]);
+
+    // Met à jour automatiquement la date d'expiration en création, si non modifiée manuellement
+    useEffect(() => {
+        if (selectedId != null) return; // uniquement en création
+        const delivrance = watch("date_delivrance");
+        if (!delivrance) return;
+        if (expirationManuallyEditedRef.current) return;
+        const exp = addYears(delivrance, 15);
+        if (exp) {
+            setValue("date_expiration", exp, { shouldValidate: true, shouldDirty: true });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [watch("date_delivrance"), selectedId]);
+
+    // Met à jour automatiquement la date de fin probatoire en création
+    useEffect(() => {
+        if (selectedId != null) return; // uniquement en création
+        const isProbatoire = Boolean(watch("probatoire"));
+        const delivrance = watch("date_delivrance");
+        if (!isProbatoire) return;
+        if (!delivrance) return;
+        if (probatoireManuallyEditedRef.current) return;
+        const end = addYears(delivrance, 3);
+        if (end) {
+            setValue("date_probatoire", end, { shouldValidate: true, shouldDirty: true });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [watch("date_delivrance"), watch("probatoire"), selectedId]);
+
+    // Si la date de délivrance change en création, synchronise les dates des catégories cochées non modifiées manuellement
+    useEffect(() => {
+        if (selectedId != null) return; // uniquement en création
+        const base = watch("date_delivrance");
+        if (!base) return;
+        CAT_KEYS.forEach((k) => {
+            const boolName = `cat_${k}`;
+            const dateName = `cat_${k}_delivrance`;
+            const isChecked = Boolean(getValues(boolName));
+            if (isChecked && !manualEditedCatDateRef.current[k]) {
+                setValue(dateName, base, { shouldValidate: true, shouldDirty: true });
+            }
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [watch("date_delivrance"), selectedId]);
 
     // Pré-remplir le formulaire quand la sélection change
     useEffect(() => {
@@ -584,6 +687,7 @@ function AdminFnpcPage() {
     };
 
     const editSubmit = async (data) => {
+        setCreateError("");
         try {
             const baseId = selectedFnpc?.id ?? null;
             const payload = buildFnpcPayload(data);
@@ -616,6 +720,7 @@ function AdminFnpcPage() {
             }
         } catch (e) {
             console.error("Échec de l'enregistrement", e);
+            setCreateError(e?.response?.data?.detail || "Échec de l'enregistrement.");
         }
     };
 
@@ -635,7 +740,7 @@ function AdminFnpcPage() {
     return (
         <AdminAuthCheck>
             <Renamer pageTitle="FNPC - NEOGEND" />
-            <div className="min-h-screen bg-base-300">
+            <div className="">
                 <DefaultHeader />
                 <div className="flex flex-col md:flex-row md:items-start items-center justify-center gap-8 p-6">
                     <div className="bg-base-200 p-6 rounded-3xl shadow-lg">
@@ -819,6 +924,12 @@ function AdminFnpcPage() {
                                         aria-invalid={!!errors.date_expiration}
                                         {...register("date_expiration", {
                                             required: true,
+                                            onChange: () => {
+                                                // Si l'utilisateur modifie manuellement, on arrête l'auto-ajustement
+                                                if (selectedId == null) {
+                                                    expirationManuallyEditedRef.current = true;
+                                                }
+                                            },
                                         })}
                                     />
                                 </div>
@@ -838,6 +949,10 @@ function AdminFnpcPage() {
                                         <option value="perdu">Perdu</option>
                                         <option value="vole">Volé</option>
                                         <option value="detruit">Détruit</option>
+                                        <option value="retention">Rétention</option>
+                                        <option value="annulation">Annulation</option>
+                                        <option value="invalidation">Invalidation</option>
+                                        <option value="suspension">Suspension</option>
                                         <option value="autre">Autre</option>
                                     </select>
                                 </div>
@@ -877,7 +992,45 @@ function AdminFnpcPage() {
                                         <input
                                             type="checkbox"
                                             className="checkbox checkbox-primary"
-                                            {...register("probatoire")}
+                                            {...register("probatoire", {
+                                                onChange: (e) => {
+                                                    if (selectedId != null) return; // seulement en création
+                                                    const checked = e?.target?.checked;
+                                                    if (checked) {
+                                                        if (
+                                                            !probatoireManuallyEditedRef.current
+                                                        ) {
+                                                            const base =
+                                                                getValues(
+                                                                    "date_delivrance",
+                                                                );
+                                                            if (base) {
+                                                                const end = addYears(
+                                                                    base,
+                                                                    3,
+                                                                );
+                                                                if (end) {
+                                                                    setValue(
+                                                                        "date_probatoire",
+                                                                        end,
+                                                                        {
+                                                                            shouldDirty: true,
+                                                                            shouldValidate: true,
+                                                                        },
+                                                                    );
+                                                                }
+                                                            }
+                                                        }
+                                                    } else {
+                                                        // décoché: on efface la date et on réinitialise l'état manuel
+                                                        probatoireManuallyEditedRef.current = false;
+                                                        setValue("date_probatoire", "", {
+                                                            shouldDirty: true,
+                                                            shouldValidate: true,
+                                                        });
+                                                    }
+                                                },
+                                            })}
                                         />
                                         <span>Probatoire</span>
                                     </label>
@@ -891,7 +1044,13 @@ function AdminFnpcPage() {
                                             type="date"
                                             className="input input-bordered"
                                             disabled={!watch("probatoire")}
-                                            {...register("date_probatoire")}
+                                            {...register("date_probatoire", {
+                                                onChange: () => {
+                                                    if (selectedId == null) {
+                                                        probatoireManuallyEditedRef.current = true;
+                                                    }
+                                                },
+                                            })}
                                         />
                                     </div>
                                 </div>
@@ -901,26 +1060,9 @@ function AdminFnpcPage() {
                             <div className="space-y-2">
                                 <h3 className="font-semibold">Catégories</h3>
                                 {(() => {
-                                    const cats = [
-                                        "am",
-                                        "a1",
-                                        "a2",
-                                        "a",
-                                        "b1",
-                                        "b",
-                                        "c1",
-                                        "c",
-                                        "d1",
-                                        "d",
-                                        "be",
-                                        "c1e",
-                                        "ce",
-                                        "d1e",
-                                        "de",
-                                    ];
                                     return (
                                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2">
-                                            {cats.map((k) => {
+                                            {CAT_KEYS.map((k) => {
                                                 const boolName = `cat_${k}`;
                                                 const dateName = `cat_${k}_delivrance`;
                                                 const checked = watch(boolName);
@@ -934,7 +1076,58 @@ function AdminFnpcPage() {
                                                             <input
                                                                 type="checkbox"
                                                                 className="checkbox checkbox-primary checkbox-sm"
-                                                                {...register(boolName)}
+                                                                {...register(boolName, {
+                                                                    onChange: (e) => {
+                                                                        const isChecked =
+                                                                            e?.target
+                                                                                ?.checked;
+                                                                        if (
+                                                                            selectedId ==
+                                                                            null
+                                                                        ) {
+                                                                            if (
+                                                                                isChecked
+                                                                            ) {
+                                                                                if (
+                                                                                    !manualEditedCatDateRef
+                                                                                        .current[
+                                                                                        k
+                                                                                    ]
+                                                                                ) {
+                                                                                    const base =
+                                                                                        getValues(
+                                                                                            "date_delivrance",
+                                                                                        );
+                                                                                    if (
+                                                                                        base
+                                                                                    ) {
+                                                                                        setValue(
+                                                                                            dateName,
+                                                                                            base,
+                                                                                            {
+                                                                                                shouldDirty: true,
+                                                                                                shouldValidate: true,
+                                                                                            },
+                                                                                        );
+                                                                                    }
+                                                                                }
+                                                                            } else {
+                                                                                // décoché: on efface la date et on réinitialise l'état manuel pour ce permis
+                                                                                manualEditedCatDateRef.current[
+                                                                                    k
+                                                                                ] = false;
+                                                                                setValue(
+                                                                                    dateName,
+                                                                                    "",
+                                                                                    {
+                                                                                        shouldDirty: true,
+                                                                                        shouldValidate: true,
+                                                                                    },
+                                                                                );
+                                                                            }
+                                                                        }
+                                                                    },
+                                                                })}
                                                             />
                                                             <span className="text-sm">
                                                                 {label}
@@ -944,7 +1137,17 @@ function AdminFnpcPage() {
                                                             type="date"
                                                             className="input input-bordered input-sm"
                                                             disabled={!checked}
-                                                            {...register(dateName)}
+                                                            {...register(dateName, {
+                                                                onChange: () => {
+                                                                    if (
+                                                                        selectedId == null
+                                                                    ) {
+                                                                        manualEditedCatDateRef.current[
+                                                                            k
+                                                                        ] = true;
+                                                                    }
+                                                                },
+                                                            })}
                                                         />
                                                     </label>
                                                 );
@@ -986,6 +1189,11 @@ function AdminFnpcPage() {
                                             .
                                         </span>
                                     </p>
+                                </div>
+                            )}
+                            {createError && (
+                                <div className="badge badge-error mt-2">
+                                    {createError}
                                 </div>
                             )}
                         </form>

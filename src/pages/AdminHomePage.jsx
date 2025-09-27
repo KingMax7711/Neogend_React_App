@@ -19,11 +19,11 @@ import { frontToService } from "../tools/serviceTranslate";
 
 const filesList = [
     { name: "fnpc", fullName: "Fichier National des Permis de Conduire" },
-    { name: "siv", fullName: "Système d'Immatriculation des Véhicules" },
     { name: "fpr", fullName: "Fichier des Personnes Recherchées" },
     { name: "taj", fullName: "Titre d'Antécédents Judiciaires" },
-    { name: "foves", fullName: "Fichier des Objets et des Véhicules Signalés" },
     { name: "fijait", fullName: "Fichier des Auteurs d'Infraction Terroristes" },
+    { name: "siv", fullName: "Système d'Immatriculation des Véhicules" },
+    { name: "foves", fullName: "Fichier des Objets et des Véhicules Signalés" },
     { name: "proprio", fullName: "Propriétaire" },
     { name: "infrac", fullName: "Infractions" },
 ];
@@ -480,7 +480,7 @@ function AdminHomePage() {
     return (
         <AdminAuthCheck>
             <Renamer pageTitle={"Admin - Neogend"} />
-            <div className="min-h-screen bg-base-300">
+            <div className="">
                 <DefaultHeader />
                 <div className="bg-base-200 p-6 rounded-3xl shadow-lg m-6 flex flex-col md:flex-row gap-8 h-fit w-fit mx-auto">
                     <div className="flex flex-col gap-4 justify-between items-center md:items-start">

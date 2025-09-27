@@ -168,7 +168,7 @@ function AdminUserPage() {
     return (
         <>
             <AdminAuthCheck>
-                <div className="min-h-screen bg-base-300">
+                <div className="">
                     <DefaultHeader />
                     <Renamer pageTitle={"Admin - Neogend"} />
                     <div className="flex flex-col items-center p-4">

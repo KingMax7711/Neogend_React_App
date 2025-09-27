@@ -13,21 +13,20 @@ import DefaultHeader from "../components/Header.jsx";
 import formatName from "../tools/formatName.js";
 import { dbDateToFront } from "../tools/dateTranslate.js";
 
-function AdminInfracPage() {
+function AdminFprPage() {
     const { user, token } = useAuthStore();
-    const [fnpcList, setFnpcList] = useState([]);
     const [propList, setPropList] = useState([]);
-    const [infracList, setInfracList] = useState([]);
+    const [fprList, setFprList] = useState([]);
+    const [fnpcList, setFnpcList] = useState([]);
     const [selectedId, setSelectedId] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-    const [errorMsg, setErrorMsg] = useState("");
     const firstLoadRef = useRef(true);
     const prevHashRef = useRef("");
     const firstPropLoadRef = useRef(true);
     const prevPropHashRef = useRef("");
-    const firstInfracLoadRef = useRef(true);
-    const prevInfracHashRef = useRef("");
+    const firstFprLoadRef = useRef(true);
+    const prevFprHashRef = useRef("");
 
     // eslint-disable-next-line no-unused-vars
     const scrollYRef = useRef(0);
@@ -41,6 +40,7 @@ function AdminInfracPage() {
         );
     };
 
+    // Fetch fnpc
     useEffect(() => {
         // Ne lance rien tant que le token n'est pas prêt ou que l'utilisateur n'est pas admin
         const accesGranted = ["admin", "owner"];
@@ -157,6 +157,7 @@ function AdminInfracPage() {
         };
     }, [token, user]);
 
+    // Fetch proprietaires
     useEffect(() => {
         // Ne lance rien tant que le token n'est pas prêt ou que l'utilisateur n'est pas admin
         const accesGranted = ["admin", "owner"];
@@ -243,6 +244,7 @@ function AdminInfracPage() {
         // NOTE: on NE met PAS usersList en dépendance pour éviter des fetchs en boucle.
     }, [token, user]);
 
+    // Fetch fpr
     useEffect(() => {
         // Ne lance rien tant que le token n'est pas prêt ou que l'utilisateur n'est pas admin
         const accesGranted = ["admin", "owner"];
@@ -254,16 +256,24 @@ function AdminInfracPage() {
         const stableHash = (list) => {
             try {
                 const norm = [...(list || [])]
-                    .map((infrac) => ({
-                        id: infrac?.id ?? infrac?.user_id ?? null,
-                        article: infrac?.article ?? null,
-                        classe: infrac?.classe ?? null,
-                        natinf: infrac?.natinf ?? null,
-                        points: infrac?.points ?? null,
-                        nipol: infrac?.nipol ?? null,
-                        date_infraction: infrac?.date_infraction ?? null,
-                        details: infrac?.details ?? null,
-                        statut: infrac?.statut ?? null,
+                    .map((fpr) => ({
+                        id: fpr?.id ?? fpr?.user_id ?? null,
+                        exactitude: fpr?.exactitude ?? null,
+
+                        date_enregistrement: fpr?.date_enregistrement ?? null,
+                        motif_enregistrement: fpr?.motif_enregistrement ?? null,
+                        autorite_enregistrement: fpr?.autorite_enregistrement ?? null,
+                        lieu_faits: fpr?.lieu_faits ?? null,
+                        details: fpr?.details ?? null,
+
+                        dangerosite: fpr?.dangerosite ?? null,
+                        signes_distinctifs: fpr?.signes_distinctifs ?? null,
+
+                        conduite: fpr?.conduite ?? null,
+
+                        prop_id: fpr?.prop_id ?? null, //!!! ATTENTION INVERSION prop_id / id_prop (Je suis con j'ai pas fait gaffe en back)
+                        neph: fpr?.neph ?? null,
+                        num_fijait: fpr?.num_fijait ?? null,
                     }))
                     .sort(
                         (a, b) => (a.id ?? 0) - (b.id ?? 0) || a.id.localeCompare(b.id),
@@ -274,44 +284,44 @@ function AdminInfracPage() {
             }
         };
 
-        const fetchInfrac = async () => {
+        const fetchFpr = async () => {
             if (cancelled) return;
             try {
-                if (firstInfracLoadRef.current) setLoading(true);
+                if (firstFprLoadRef.current) setLoading(true);
                 setError("");
-                const response = await axios.get(`${API}/infractions/read/`, {
+                const response = await axios.get(`${API}/fpr/read/`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 if (!cancelled) {
                     const next = response.data || [];
                     const nextHash = stableHash(next);
-                    if (nextHash !== prevInfracHashRef.current) {
-                        setInfracList(next);
-                        prevInfracHashRef.current = nextHash;
+                    if (nextHash !== prevFprHashRef.current) {
+                        setFprList(next);
+                        prevFprHashRef.current = nextHash;
                     }
                 }
             } catch (err) {
-                console.error("Error fetching infractions:", err);
+                console.error("Error fetching fpr:", err);
                 if (!cancelled) {
-                    setError("Impossible de charger les infractions.");
+                    setError("Impossible de charger le fpr.");
                 }
             } finally {
                 if (!cancelled) {
                     setLoading(false);
-                    firstInfracLoadRef.current = false;
+                    firstFprLoadRef.current = false;
                 }
             }
         };
 
         const poll = () => {
             if (document.hidden) return; // ignore si onglet caché
-            fetchInfrac();
+            fetchFpr();
         };
 
-        fetchInfrac();
+        fetchFpr();
         const intervalId = setInterval(poll, 30000);
         const onVisibility = () => {
-            if (!document.hidden) fetchInfrac();
+            if (!document.hidden) fetchFpr();
         };
         document.addEventListener("visibilitychange", onVisibility);
 
@@ -320,100 +330,32 @@ function AdminInfracPage() {
             clearInterval(intervalId);
             document.removeEventListener("visibilitychange", onVisibility);
         };
-        // NOTE: on NE met PAS usersList en dépendance pour éviter des fetchs en boucle.
     }, [token, user]);
 
     // Si la liste change et que l'ID sélectionné n'existe plus, on nettoie
     useEffect(() => {
-        if (selectedId != null && !infracList.some((p) => p.id === selectedId)) {
+        if (selectedId != null && !fprList.some((p) => p.id === selectedId)) {
             setSelectedId(null);
         }
-    }, [infracList, selectedId]);
+    }, [fprList, selectedId]);
 
-    const selectedInfrac = useMemo(
-        () => infracList.find((p) => p.id === selectedId) ?? null,
-        [infracList, selectedId],
+    const selectedFpr = useMemo(
+        () => fprList.find((p) => p.id === selectedId) ?? null,
+        [fprList, selectedId],
     );
+
+    const findPropLinkToFpr = (fpr) => {
+        const prop = propList.find((p) => p.id === fpr.prop_id);
+        return prop ? prop : null;
+    };
 
     const findPropLinkToFnpc = (fnpc) => {
         const prop = propList.find((p) => p.id === fnpc.prop_id);
         return prop ? prop : null;
     };
 
-    const findFnpcLinkToInfrac = (infrac) => {
-        const fnpc = fnpcList.find((f) => f.neph === infrac.neph);
-        return fnpc ? fnpc : null;
-    };
-
-    const TableRow = ({ infrac }) => {
-        const linkedFnpc = findFnpcLinkToInfrac(infrac);
-        const linkedProp = findPropLinkToFnpc(linkedFnpc);
-        return (
-            <tr key={infrac.id} className="text-center">
-                <td>{infrac.id}</td>
-                <td>{infrac.neph}</td>
-                <td>
-                    {linkedProp
-                        ? linkedProp.prenom !== "" && linkedProp.nom_famille !== ""
-                            ? `${formatName(
-                                  linkedProp.prenom,
-                              )} ${linkedProp.nom_famille[0].toUpperCase()}.`
-                            : "Propriétaire inconnu"
-                        : "Aucun propriétaire"}
-                </td>
-                <td>{dbDateToFront(infrac.date_infraction)}</td>
-                <td>{infrac.article ? infrac.article : "N/A"}</td>
-                <td>{infrac.classe + "ème Classe"}</td>
-                <td>{infrac.natinf ? infrac.natinf : "N/A"}</td>
-                <td>{"-" + infrac.points}</td>
-                <td>
-                    {infrac.statut == "paye"
-                        ? "Payé"
-                        : infrac.statut == "attente"
-                        ? "En attente"
-                        : infrac.statut == "impaye"
-                        ? "Impayé"
-                        : "Inconnu"}
-                </td>
-                <td>
-                    {infrac.details != null ? (
-                        infrac.details.length > 35 ? (
-                            <span>{infrac.details.slice(0, 35)}...</span>
-                        ) : (
-                            infrac.details
-                        )
-                    ) : (
-                        "Aucun détail"
-                    )}
-                </td>
-                <td>{infrac.nipol}</td>
-
-                <td>
-                    <input
-                        type="radio"
-                        className="radio radio-primary"
-                        name="edit"
-                        value={infrac.id}
-                        checked={selectedId === infrac.id}
-                        onMouseDown={(e) => e.preventDefault()} // évite le focus qui scroll
-                        onChange={() => handleSelect(infrac.id)}
-                    />
-                </td>
-                <td>
-                    <button
-                        className="btn btn-error btn-sm"
-                        onClick={() => deleteHandle(infrac.id)}
-                    >
-                        Supprimer
-                    </button>
-                </td>
-            </tr>
-        );
-    };
-
-    const MobileInfracCard = ({ infrac }) => {
-        const linkedFnpc = findFnpcLinkToInfrac(infrac);
-        const linkedProp = findPropLinkToFnpc(linkedFnpc || {});
+    const TableRow = ({ fpr }) => {
+        const linkedProp = findPropLinkToFpr(fpr);
         const ownerLabel = linkedProp
             ? linkedProp.prenom !== "" && linkedProp.nom_famille !== ""
                 ? `${formatName(linkedProp.prenom)} ${
@@ -422,32 +364,82 @@ function AdminInfracPage() {
                 : "Propriétaire inconnu"
             : "Aucun propriétaire";
 
-        const detailsCompact =
-            infrac.details != null
-                ? infrac.details.length > 35
-                    ? `${infrac.details.slice(0, 35)}...`
-                    : infrac.details
-                : "Aucun détail";
+        const fmt = (v) => (v === null || v === undefined || v === "" ? "—" : String(v));
+        const fmtName = (v) =>
+            v === null || v === undefined || v === "" ? "—" : formatName(v);
+        const fmtDate = (v) => (v ? dbDateToFront(v) : "—");
+
+        return (
+            <tr key={fpr.id} className="text-center">
+                <td>{fmt(fpr.id)}</td>
+                <td>{ownerLabel}</td>
+                <td>{fmtName(fpr.exactitude)}</td>
+                <td>{fmtDate(fpr.date_enregistrement)}</td>
+                <td>{fmtName(fpr.motif_enregistrement)}</td>
+                <td>{fmt(fpr.autorite_enregistrement)}</td>
+                <td>{fmt(fpr.lieu_faits).toUpperCase()}</td>
+                <td>{fmtName(fpr.dangerosite)}</td>
+                <td>{fmt(fpr.conduite)}</td>
+                <td>{fmt(fpr.neph)}</td>
+                <td>{fmt(fpr.num_fijait)}</td>
+                <td>
+                    <input
+                        type="radio"
+                        className="radio radio-primary"
+                        name="edit"
+                        value={fpr.id}
+                        checked={selectedId === fpr.id}
+                        onMouseDown={(e) => e.preventDefault()} // évite le focus qui scroll
+                        onChange={() => handleSelect(fpr.id)}
+                    />
+                </td>
+                <td>
+                    <button
+                        className="btn btn-error btn-sm"
+                        onClick={() => deleteHandle(fpr.id)}
+                    >
+                        Supprimer
+                    </button>
+                </td>
+            </tr>
+        );
+    };
+
+    const MobileFprCard = ({ fpr }) => {
+        const linkedProp = findPropLinkToFpr(fpr);
+        const ownerLabel = linkedProp
+            ? linkedProp.prenom !== "" && linkedProp.nom_famille !== ""
+                ? `${formatName(linkedProp.prenom)} ${
+                      linkedProp.nom_famille?.[0]?.toUpperCase() || ""
+                  }.`
+                : "Propriétaire inconnu"
+            : "Aucun propriétaire";
+
+        const fmt = (v) => (v === null || v === undefined || v === "" ? "—" : String(v));
+        const fmtName = (v) =>
+            v === null || v === undefined || v === "" ? "—" : formatName(v);
+        const fmtDate = (v) => (v ? dbDateToFront(v) : "—");
 
         return (
             <div
-                key={infrac.id}
+                key={fpr.id}
                 role="button"
                 tabIndex={0}
-                onClick={() => handleSelect(infrac.id)}
+                onClick={() => handleSelect(fpr.id)}
                 className={clsx(
                     "card card-compact bg-base-100 shadow-md rounded-box border border-base-content/5 cursor-pointer",
-                    { "border-primary": selectedId === infrac.id },
+                    { "border-primary": selectedId === fpr.id },
                 )}
             >
                 <div className="card-body">
                     <div className="flex items-start justify-between gap-2">
                         <div>
                             <h3 className="card-title text-base-content">
-                                NEPH: <span className="font-mono">{infrac.neph}</span>
+                                ID: <span className="font-mono">{fmt(fpr.id)}</span>
                             </h3>
                             <p className="text-sm text-base-content/70">
-                                ID: <span className="font-mono">{infrac.id}</span>
+                                Propriétaire:{" "}
+                                <span className="font-medium">{ownerLabel}</span>
                             </p>
                         </div>
                         <label className="flex items-center gap-2">
@@ -455,9 +447,9 @@ function AdminInfracPage() {
                                 type="radio"
                                 className="radio radio-primary pointer-events-none"
                                 name="edit-mobile"
-                                value={infrac.id}
+                                value={fpr.id}
                                 readOnly
-                                checked={selectedId === infrac.id}
+                                checked={selectedId === fpr.id}
                             />
                         </label>
                     </div>
@@ -465,109 +457,128 @@ function AdminInfracPage() {
                     <div className="divider my-2" />
 
                     <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                        <div className="opacity-70">Propriétaire</div>
-                        <div className="font-medium">{ownerLabel}</div>
+                        <div className="opacity-70">Exactitude</div>
+                        <div className="font-medium">{fmtName(fpr.exactitude)}</div>
 
-                        <div className="opacity-70">Date infraction</div>
-                        <div className="font-medium">{infrac.date_infraction}</div>
-
-                        <div className="opacity-70">Article</div>
+                        <div className="opacity-70">Date enr.</div>
                         <div className="font-medium">
-                            {infrac.article ? infrac.article : "N/A"}
+                            {fmtDate(fpr.date_enregistrement)}
                         </div>
 
-                        <div className="opacity-70">Natinf</div>
+                        <div className="opacity-70">Motif</div>
                         <div className="font-medium">
-                            {infrac.natinf ? infrac.natinf : "N/A"}
+                            {fmtName(fpr.motif_enregistrement)}
                         </div>
 
-                        <div className="opacity-70">Classe</div>
-                        <div className="font-medium">{infrac.classe + "ème Classe"}</div>
-
-                        <div className="opacity-70">Points</div>
+                        <div className="opacity-70">Autorité</div>
                         <div className="font-medium">
-                            {"-" + infrac.points + " Points"}
+                            {fmt(fpr.autorite_enregistrement)}
                         </div>
 
-                        <div className="opacity-70">Statut</div>
+                        <div className="opacity-70">Lieu</div>
                         <div className="font-medium">
-                            {infrac.statut == "paye"
-                                ? "Payé"
-                                : infrac.statut == "attente"
-                                ? "En attente"
-                                : infrac.statut == "impaye"
-                                ? "Impayé"
-                                : "Inconnu"}
+                            {fmt(fpr.lieu_faits).toUpperCase()}
                         </div>
 
-                        <div className="opacity-70">Détails</div>
-                        <div className="font-medium break-words">{detailsCompact}</div>
+                        <div className="opacity-70">Dangerosité</div>
+                        <div className="font-medium">{fmtName(fpr.dangerosite)}</div>
 
-                        <div className="opacity-70">Nipol</div>
-                        <div className="font-medium">{infrac.nipol}</div>
+                        <div className="opacity-70">Conduite</div>
+                        <div className="font-medium">{fmt(fpr.conduite)}</div>
+
+                        <div className="opacity-70">NEPH</div>
+                        <div className="font-mono">{fmt(fpr.neph)}</div>
+
+                        <div className="opacity-70">N° FIJAIT</div>
+                        <div className="font-mono">{fmt(fpr.num_fijait)}</div>
                     </div>
+
+                    {fpr?.signes_distinctifs || fpr?.details ? (
+                        <div className="mt-2 text-xs text-base-content/70">
+                            {fpr?.signes_distinctifs && (
+                                <div>
+                                    <span className="opacity-70">Signes:</span>{" "}
+                                    {fpr.signes_distinctifs}
+                                </div>
+                            )}
+                            {fpr?.details && (
+                                <div className="line-clamp-3">
+                                    <span className="opacity-70">Détails:</span>{" "}
+                                    {fpr.details}
+                                </div>
+                            )}
+                        </div>
+                    ) : null}
                 </div>
             </div>
         );
     };
 
-    const sortedInfracList = [...infracList].sort((a, b) => (a.id ?? 0) - (b.id ?? 0));
+    const sortedFprList = [...fprList].sort((a, b) => (a.id ?? 0) - (b.id ?? 0));
 
     const {
         register,
         handleSubmit,
         reset,
-        // eslint-disable-next-line no-unused-vars
-        watch,
         formState: { isSubmitting, errors },
     } = useForm({
         defaultValues: {
             id: "",
-            neph: "",
-            article: "",
-            classe: "",
-            natinf: "",
-            points: "",
-            nipol: "",
-            date_infraction: "",
+            exactitude: "",
+            date_enregistrement: new Date().toISOString().slice(0, 10),
+            motif_enregistrement: "",
+            autorite_enregistrement: "",
+            lieu_faits: "",
             details: "",
-            statut: "",
+            dangerosite: "",
+            signes_distinctifs: "",
+            conduite: "",
+            prop_id: "",
+            neph: "",
+            num_fijait: "",
         },
     });
 
     // Pré-remplir le formulaire quand la sélection change
     useEffect(() => {
-        if (!selectedInfrac) {
+        if (!selectedFpr) {
             reset({
                 id: "",
-                neph: "",
-                article: "",
-                classe: "",
-                natinf: "",
-                points: "",
-                nipol: "",
-                date_infraction: "",
+                exactitude: "",
+                date_enregistrement: new Date().toISOString().slice(0, 10),
+                motif_enregistrement: "",
+                autorite_enregistrement: "",
+                lieu_faits: "",
                 details: "",
-                statut: "",
+                dangerosite: "",
+                signes_distinctifs: "",
+                conduite: "",
+                prop_id: "",
+                neph: "",
+                num_fijait: "",
             });
             return;
         }
         reset({
-            id: selectedInfrac?.id ?? "",
-            neph: selectedInfrac?.neph ?? "",
-            article: selectedInfrac?.article ?? "",
-            classe: selectedInfrac?.classe ?? "",
-            natinf: selectedInfrac?.natinf ?? "",
-            points: selectedInfrac?.points ?? "",
-            nipol: selectedInfrac?.nipol ?? "",
-            date_infraction: selectedInfrac?.date_infraction ?? "",
-            details: selectedInfrac?.details ?? "",
-            statut: selectedInfrac?.statut ?? "",
+            //TODO: Normalize des valeurs
+            id: selectedFpr.id ?? "",
+            exactitude: selectedFpr.exactitude ?? "",
+            date_enregistrement: selectedFpr.date_enregistrement ?? "",
+            motif_enregistrement: selectedFpr.motif_enregistrement ?? "",
+            autorite_enregistrement: selectedFpr.autorite_enregistrement ?? "",
+            lieu_faits: selectedFpr.lieu_faits ?? "",
+            details: selectedFpr.details ?? "",
+            dangerosite: selectedFpr.dangerosite ?? "",
+            signes_distinctifs: selectedFpr.signes_distinctifs ?? "",
+            conduite: selectedFpr.conduite ?? "",
+            prop_id: selectedFpr.prop_id ?? "", //!!! ATTENTION INVERSION prop_id / id_prop (Je suis con j'ai pas fait gaffe en back)
+            neph: selectedFpr.neph ?? "",
+            num_fijait: selectedFpr.num_fijait ?? "",
         });
-    }, [selectedInfrac, reset]);
+    }, [selectedFpr, reset]);
 
     // Construit un payload typé et met toutes les chaînes en minuscules
-    const buildInfracPayload = (raw) => {
+    const buildFprPayload = (raw) => {
         const s = (v) => {
             if (v === undefined || v === null) return null;
             const t = String(v).trim();
@@ -588,35 +599,34 @@ function AdminInfracPage() {
         };
 
         const out = {
-            neph: n(raw.neph),
-            article: s(raw.article),
-            classe: s(raw.classe),
-            natinf: s(raw.natinf),
-            points: n(raw.points),
-            nipol: s(raw.nipol),
-            date_infraction: d(raw.date_infraction),
+            exactitude: s(raw.exactitude),
+
+            date_enregistrement: d(raw.date_enregistrement),
+            motif_enregistrement: s(raw.motif_enregistrement),
+            autorite_enregistrement: s(raw.autorite_enregistrement),
+            lieu_faits: s(raw.lieu_faits),
             details: s(raw.details),
-            statut: s(raw.statut),
+            dangerosite: s(raw.dangerosite),
+            signes_distinctifs: s(raw.signes_distinctifs),
+            conduite: s(raw.conduite),
+
+            prop_id: n(raw.prop_id),
+            neph: s(raw.neph),
+            num_fijait: s(raw.num_fijait),
         };
         return out;
     };
 
     const editSubmit = async (data) => {
         try {
-            const baseId = selectedInfrac?.id ?? null;
-            const payload = buildInfracPayload(data);
-            console.log("Soumission infraction", { baseId, payload });
-            setErrorMsg("");
+            const baseId = selectedFpr?.id ?? null;
+            const payload = buildFprPayload(data);
             if (baseId != null) {
-                const res = await axios.put(
-                    `${API}/infractions/update/${baseId}/`,
-                    payload,
-                    {
-                        headers: { Authorization: `Bearer ${token}` },
-                    },
-                );
+                const res = await axios.put(`${API}/fpr/update/${baseId}/`, payload, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
                 const updated = res?.data || payload;
-                setInfracList((prev) => {
+                setFprList((prev) => {
                     const idx = prev.findIndex((p) => p.id === baseId);
                     if (idx === -1) return prev;
                     const next = [...prev];
@@ -625,12 +635,12 @@ function AdminInfracPage() {
                 });
                 setSelectedId(null);
             } else {
-                const res = await axios.post(`${API}/infractions/create/`, payload, {
+                const res = await axios.post(`${API}/fpr/create/`, payload, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 const created = res?.data;
                 if (created && created.id != null) {
-                    setInfracList((prev) => {
+                    setFprList((prev) => {
                         const next = [...prev, created];
                         return next;
                     });
@@ -639,17 +649,16 @@ function AdminInfracPage() {
             }
         } catch (e) {
             console.error("Échec de l'enregistrement", e);
-            setErrorMsg(e?.response?.data?.detail || "Erreur lors de l'enregistrement");
         }
     };
 
     const deleteHandle = async (id) => {
         if (!id) return;
         try {
-            await axios.delete(`${API}/infractions/delete/${id}/`, {
+            await axios.delete(`${API}/fpr/delete/${id}/`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            setInfracList((prev) => prev.filter((p) => p.id !== id));
+            setFprList((prev) => prev.filter((p) => p.id !== id));
             if (selectedId === id) setSelectedId(null);
         } catch (e) {
             console.error("Suppression échouée", e);
@@ -658,14 +667,16 @@ function AdminInfracPage() {
 
     return (
         <AdminAuthCheck>
-            <Renamer pageTitle="INFRAC - NEOGEND" />
+            <Renamer pageTitle="FPR - NEOGEND" />
             <div className="">
                 <DefaultHeader />
                 <div className="flex flex-col md:flex-row md:items-start items-center justify-center gap-8 p-6">
                     <div className="bg-base-200 p-6 rounded-3xl shadow-lg">
-                        <h2 className="text-xl font-bold mb-4 text-center">
-                            INFRACTIONS
-                        </h2>
+                        <h2 className="text-xl font-bold mb-4 text-center">FPR</h2>
+                        <p className="text-center italic text-sm mb-4">
+                            L'ensemble des données n'est pas affiché, pour plus de détails
+                            sélectionner un enregistrement.
+                        </p>
                         {loading ? (
                             <div className="flex justify-center">
                                 <span className="loading loading-spinner text-primary"></span>
@@ -674,41 +685,35 @@ function AdminInfracPage() {
                             <div className="badge badge-error">{error}</div>
                         ) : (
                             <div>
-                                <div className="md:block hidden overflow-x-auto rounded-box border border-base-content/5 bg-base-100 w-fit">
+                                <div className="md:block hidden overflow-x-auto rounded-box border border-base-content/5 bg-base-100 w-full">
                                     <table className="table">
                                         <thead>
                                             <tr className="text-center">
-                                                <th className="">ID</th>
-                                                <th className="">NEPH</th>
-                                                <th className="">Propriétaires</th>
-                                                <th className="">Date Infraction</th>
-                                                <th className="">Article</th>
-                                                <th className="">Classe</th>
-                                                <th className="">Natinf</th>
-                                                <th className="">Points</th>
-                                                <th className="">Statut</th>
-                                                <th className="">Détails</th>
-                                                <th className="">N° Agent</th>
-                                                <th className="">Sélectionner</th>
-                                                <th className="">Actions</th>
+                                                <th>ID</th>
+                                                <th>Propriétaire</th>
+                                                <th>Exactitude</th>
+                                                <th>Date enr.</th>
+                                                <th>Motif</th>
+                                                <th>Autorité</th>
+                                                <th>Lieu</th>
+                                                <th>Dangerosité</th>
+                                                <th>Conduite</th>
+                                                <th>NEPH</th>
+                                                <th>N° FIJAIT</th>
+                                                <th>Sélectionner</th>
+                                                <th>Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {sortedInfracList.map((infrac) => (
-                                                <TableRow
-                                                    key={infrac.id}
-                                                    infrac={infrac}
-                                                />
+                                            {sortedFprList.map((fpr) => (
+                                                <TableRow key={fpr.id} fpr={fpr} />
                                             ))}
                                         </tbody>
                                     </table>
                                 </div>
                                 <div className="block md:hidden space-y-4 w-full">
-                                    {sortedInfracList.map((infrac) => (
-                                        <MobileInfracCard
-                                            key={infrac.id}
-                                            infrac={infrac}
-                                        />
+                                    {sortedFprList.map((fpr) => (
+                                        <MobileFprCard key={fpr.id} fpr={fpr} />
                                     ))}
                                 </div>
                             </div>
@@ -717,12 +722,12 @@ function AdminInfracPage() {
                     <div className="bg-base-200 p-6 rounded-3xl shadow-lg w-full max-w-2xl">
                         <h2 className="text-xl font-bold mb-4 text-center">Édition</h2>
                         <p className="text-center italic text-sm">
-                            Sélectionnez une infraction pour l'éditer <br />
-                            ou créez-en une nouvelle
+                            Sélectionnez un enregistrement pour l'éditer <br />
+                            ou créez-en un nouveau
                         </p>
-                        {selectedInfrac && (
+                        {selectedFpr && (
                             <div className="flex items-center justify-center mb-4 gap-2 bg-warning/10 p-2 rounded-lg w-fit mx-auto border border-warning/50">
-                                <p>Edition de L'infraction : </p>
+                                <p>Edition de L'enregistrement : </p>
                                 <span className="badge badge-info">{selectedId}</span>
                                 <button
                                     className="btn btn-error btn-sm btn-circle"
@@ -737,6 +742,170 @@ function AdminInfracPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div className="form-control">
                                     <label className="label">
+                                        <span className="label-text">Propriétaire</span>
+                                    </label>
+                                    <select
+                                        className={clsx("select select-bordered", {
+                                            "select-error": errors.prop_id,
+                                        })}
+                                        aria-invalid={!!errors.prop_id}
+                                        {...register("prop_id", { required: true })}
+                                    >
+                                        <option value="">Aucun</option>
+                                        {propList.map((p) => (
+                                            <option key={p.id} value={p.id}>
+                                                ({p.id}) {formatName(p.prenom)}{" "}
+                                                {p.nom_famille?.[0]?.toUpperCase() || ""}.
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="form-control">
+                                    <label className="label">
+                                        <span className="label-text">
+                                            Exactitude de l'Identification
+                                        </span>
+                                    </label>
+                                    <select
+                                        className={clsx("select select-bordered", {
+                                            "select-error": errors.exactitude,
+                                        })}
+                                        aria-invalid={!!errors.exactitude}
+                                        {...register("exactitude")}
+                                    >
+                                        <option value="">Sélectionner</option>
+                                        <option value="confirmer">Confirmer</option>
+                                        <option value="non_confirmer">
+                                            Non Confirmer
+                                        </option>
+                                        <option value="usurper">Usurper</option>
+                                        <option value="surnom">Surnom</option>
+                                    </select>
+                                </div>
+                                <div className="form-control">
+                                    <label className="label">
+                                        <span className="label-text">
+                                            Date d'enregistrement
+                                        </span>
+                                    </label>
+                                    <input
+                                        type="date"
+                                        className={clsx("input input-bordered", {
+                                            "input-error": errors.date_enregistrement,
+                                        })}
+                                        aria-invalid={!!errors.date_enregistrement}
+                                        {...register("date_enregistrement", {
+                                            required: true,
+                                        })}
+                                    />
+                                </div>
+
+                                <div className="form-control">
+                                    <label className="label">
+                                        <span className="label-text">
+                                            Motif d'enregistrement
+                                        </span>
+                                    </label>
+                                    <select
+                                        className={clsx("select select-bordered", {
+                                            "select-error": errors.motif_enregistrement,
+                                        })}
+                                        aria-invalid={!!errors.motif_enregistrement}
+                                        {...register("motif_enregistrement", {
+                                            required: true,
+                                        })}
+                                    >
+                                        <option value="">Sélectionner</option>
+                                        <option value="al">Aliéné</option>
+                                        <option value="e">
+                                            Police Générales des Etrangers
+                                        </option>
+                                        <option value="it">
+                                            Interdiction de Territoire
+                                        </option>
+                                        <option value="m">Mineur Fugueur</option>
+                                        <option value="pj">
+                                            Recherche de Police Judiciaire
+                                        </option>
+                                        <option value="s">Sûreté de l'Etat</option>
+                                        <option value="v">Evadé</option>
+                                        <option value="x">Personne Disparu</option>
+                                        <option value="cj">Contrôle Judiciaire</option>
+                                        <option value="g">Permis de Conduire</option>
+                                    </select>
+                                </div>
+                                <div className="form-control">
+                                    <label className="label">
+                                        <span className="label-text">Autorité</span>
+                                    </label>
+                                    <input
+                                        className="input input-bordered"
+                                        {...register("autorite_enregistrement")}
+                                    />
+                                </div>
+                                <div className="form-control">
+                                    <label className="label">
+                                        <span className="label-text">Lieu des faits</span>
+                                    </label>
+                                    <input
+                                        className="input input-bordered"
+                                        {...register("lieu_faits")}
+                                    />
+                                </div>
+
+                                <div className="form-control">
+                                    <label className="label">
+                                        <span className="label-text">Dangerosité</span>
+                                    </label>
+                                    <select
+                                        className="select select-bordered"
+                                        {...register("dangerosite")}
+                                    >
+                                        <option value="">Néant</option>
+                                        <option value="vulnerable">Vulnérable</option>
+                                        <option value="faible">Faible Risque</option>
+                                        <option value="moyenne">Risque Modéré</option>
+                                        <option value="forte">Fort Risque</option>
+                                    </select>
+                                </div>
+                                <div className="form-control">
+                                    <label className="label">
+                                        <span className="label-text">Conduite</span>
+                                    </label>
+                                    <input
+                                        className="input input-bordered"
+                                        {...register("conduite")}
+                                    />
+                                </div>
+
+                                <div className="form-control">
+                                    <label className="label">
+                                        <span className="label-text">
+                                            Signes distinctifs
+                                        </span>
+                                    </label>
+                                    <textarea
+                                        rows={2}
+                                        className="textarea textarea-bordered"
+                                        {...register("signes_distinctifs")}
+                                    />
+                                </div>
+                                <div className="form-control">
+                                    <label className="label">
+                                        <span className="label-text">
+                                            Information Diverses
+                                        </span>
+                                    </label>
+                                    <textarea
+                                        rows={3}
+                                        className="textarea textarea-bordered"
+                                        {...register("details")}
+                                    />
+                                </div>
+
+                                <div className="form-control">
+                                    <label className="label">
                                         <span className="label-text">NEPH</span>
                                     </label>
                                     <select
@@ -744,153 +913,36 @@ function AdminInfracPage() {
                                             "select-error": errors.neph,
                                         })}
                                         aria-invalid={!!errors.neph}
-                                        {...register("neph", {
-                                            required: "Le NEPH est requis",
-                                        })}
+                                        {...register("neph")}
                                     >
-                                        <option value="">Sélectionnez un NEPH</option>
+                                        <option value="">Sélectionner</option>
                                         {fnpcList.map((fnpc) => (
-                                            <option key={fnpc.neph} value={fnpc.neph}>
-                                                {findPropLinkToFnpc(fnpc)
-                                                    ? `${fnpc.neph} - ${formatName(
+                                            <option key={fnpc.id} value={fnpc.neph}>
+                                                {fnpc.neph + findPropLinkToFnpc(fnpc)
+                                                    ? `${fnpc.neph} (${formatName(
                                                           findPropLinkToFnpc(fnpc)
-                                                              .prenom || "",
+                                                              ?.prenom,
                                                       )} ${
                                                           findPropLinkToFnpc(
                                                               fnpc,
-                                                          ).nom_famille?.[0]?.toUpperCase() ||
+                                                          )?.nom_famille?.[0]?.toUpperCase() ||
                                                           ""
-                                                      }.` // Initiale du nom de famille
-                                                    : `${fnpc.neph} - Propriétaire inconnu`}
+                                                      }.)`
+                                                    : ""}
                                             </option>
                                         ))}
                                     </select>
                                 </div>
                                 <div className="form-control">
                                     <label className="label">
-                                        <span className="label-text">Points Perdu</span>
+                                        <span className="label-text">Numéro FIJAIT</span>
                                     </label>
                                     <input
-                                        type="number"
-                                        className={clsx("input input-bordered", {
-                                            "input-error": errors.points,
-                                        })}
-                                        aria-invalid={!!errors.points}
-                                        {...register("points", { required: true })}
-                                    />
-                                </div>
-                                <div className="form-control">
-                                    <label className="label">
-                                        <span className="label-text">
-                                            Date d'Infraction
-                                        </span>
-                                    </label>
-                                    <input
-                                        type="date"
-                                        className={clsx("input input-bordered", {
-                                            "input-error": errors.date_infraction,
-                                        })}
-                                        aria-invalid={!!errors.date_infraction}
-                                        {...register("date_infraction", {
-                                            required: true,
-                                        })}
-                                    />
-                                </div>
-                                <div className="form-control">
-                                    <label className="label">
-                                        <span className="label-text">Article</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className={clsx("input input-bordered", {
-                                            "input-error": errors.article,
-                                        })}
-                                        aria-invalid={!!errors.article}
-                                        {...register("article")}
-                                    />
-                                </div>
-                                <div className="form-control">
-                                    <label className="label">
-                                        <span className="label-text">Classe</span>
-                                    </label>
-                                    <select
-                                        className={clsx("select select-bordered", {
-                                            "select-error": errors.classe,
-                                        })}
-                                        aria-invalid={!!errors.classe}
-                                        {...register("classe", {
-                                            required: true,
-                                        })}
-                                    >
-                                        <option value="">Sélectionner une classe</option>
-                                        <option value="1">1ère Classe</option>
-                                        <option value="2">2ème Classe</option>
-                                        <option value="3">3ème Classe</option>
-                                        <option value="4">4ème Classe</option>
-                                        <option value="5">5ème Classe</option>
-                                    </select>
-                                </div>
-                                <div className="form-control">
-                                    <label className="label">
-                                        <span className="label-text">Natinf</span>
-                                    </label>
-                                    <input
-                                        className={clsx("input input-bordered", {
-                                            "input-error": errors.natinf,
-                                        })}
-                                        aria-invalid={!!errors.natinf}
-                                        {...register("natinf")}
-                                    />
-                                </div>
-                                <div className="form-control">
-                                    <label className="label">
-                                        <span className="label-text">Statut</span>
-                                    </label>
-                                    <select
-                                        className={clsx("select select-bordered", {
-                                            "select-error": errors.statut,
-                                        })}
-                                        aria-invalid={!!errors.statut}
-                                        {...register("statut", { required: true })}
-                                    >
-                                        <option value="">Sélectionner un statut</option>
-                                        <option value="paye">Payé</option>
-                                        <option value="attente">En Attente</option>
-                                        <option value="impaye">Impayé</option>
-                                        <option value="autre">Autre</option>
-                                    </select>
-                                </div>
-                                <div className="form-control">
-                                    <label className="label">
-                                        <span className="label-text">
-                                            Nipol/Nigend de l'agent
-                                        </span>
-                                    </label>
-                                    <input
-                                        className={clsx("input input-bordered", {
-                                            "input-error": errors.nipol,
-                                        })}
-                                        aria-invalid={!!errors.nipol}
-                                        {...register("nipol", { required: true })}
-                                    />
-                                </div>
-                                <div className="form-control grid md:col-span-2">
-                                    <label className="label">
-                                        <span className="label-text">Details</span>
-                                    </label>
-                                    <textarea
-                                        className={clsx(
-                                            "textarea textarea-bordered w-full",
-                                            {
-                                                "input-error": errors.details,
-                                            },
-                                        )}
-                                        aria-invalid={!!errors.details}
-                                        {...register("details")}
+                                        className="input input-bordered"
+                                        {...register("num_fijait")}
                                     />
                                 </div>
                             </div>
-
                             <div className="flex justify-between items-center">
                                 {selectedId == null ? (
                                     <span className="italic text-sm">
@@ -912,36 +964,19 @@ function AdminInfracPage() {
                             {selectedId != null && (
                                 <div className="bg-error/5 p-3 rounded-lg border border-error/20 text-error text-sm space-y-1 text-center">
                                     <p>
-                                        Attention, cet enregistrement est lié au NEPH :
+                                        Attention, cet enregistrement est lié au
+                                        propriétaire :{" "}
                                         <span className="font-bold">
-                                            {" "}
-                                            {selectedInfrac.neph}{" "}
-                                        </span>
-                                        <br />
-                                        Relié au propriétaire :{" "}
-                                        <span className="font-bold">
-                                            {(() => {
-                                                const fnpc = selectedInfrac
-                                                    ? findFnpcLinkToInfrac(selectedInfrac)
-                                                    : null;
-                                                const prop = fnpc
-                                                    ? findPropLinkToFnpc(fnpc)
-                                                    : null;
-                                                if (!prop) return "Inconnu";
-                                                const prenom = formatName(
-                                                    prop.prenom || "",
-                                                );
-                                                const initial =
-                                                    prop.nom_famille?.[0]?.toUpperCase() ||
-                                                    "";
-                                                return `${prenom} ${initial}.`;
-                                            })()}
+                                            {formatName(
+                                                findPropLinkToFpr(selectedFpr)?.prenom,
+                                            )}{" "}
+                                            {findPropLinkToFpr(
+                                                selectedFpr,
+                                            )?.nom_famille?.[0]?.toUpperCase()}
+                                            .
                                         </span>
                                     </p>
                                 </div>
-                            )}
-                            {errorMsg && (
-                                <div className="badge badge-error mt-2">{errorMsg}</div>
                             )}
                         </form>
                     </div>
@@ -951,4 +986,4 @@ function AdminInfracPage() {
     );
 }
 
-export default AdminInfracPage;
+export default AdminFprPage;

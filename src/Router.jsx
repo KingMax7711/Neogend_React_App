@@ -1,8 +1,14 @@
 import { createBrowserRouter, RouterProvider, Outlet, Navigate } from "react-router-dom";
 import "./App.css";
+
+// Pages publiques
 import LoginPage from "./pages/LoginPage.jsx";
 import SignUpPage from "./pages/SignUpPage.jsx";
 import HomePage from "./pages/HomePage.jsx";
+import PersonneRecherche from "./pages/PersonneRecherche.jsx";
+import AccueilRecherche from "./pages/AccueilRecherche.jsx";
+
+// Pages admin
 import AdminUserPage from "./pages/AdminOnlyPage.jsx";
 import AdminProfilePage from "./pages/AdminProfilesPage.jsx";
 import AdminHomePage from "./pages/AdminHomePage.jsx";
@@ -10,14 +16,19 @@ import ProfilePage from "./pages/ProfilesPages.jsx";
 import AdminPropioPage from "./pages/AdminPropioPage.jsx";
 import AdminFnpcPage from "./pages/AdminFnpcPage.jsx";
 import AdminInfracPage from "./pages/AdminInfracPage.jsx";
+import AdminFprPage from "./pages/AdminFprPage.jsx";
+
+// Utilitaires
 import UnfindPage from "./pages/UnfindPage.jsx";
+import Footer from "./components/Footer.jsx";
 
 const router = createBrowserRouter([
     {
         path: "/",
         element: (
-            <div>
+            <div className="min-h-screen bg-base-300 flex flex-col">
                 <Outlet />
+                <Footer />
             </div>
         ),
         errorElement: <div>Une erreur est survenue</div>,
@@ -59,8 +70,20 @@ const router = createBrowserRouter([
                 element: <AdminInfracPage />,
             },
             {
+                path: "admin/files/fpr",
+                element: <AdminFprPage />,
+            },
+            {
                 path: "profile",
                 element: <ProfilePage />,
+            },
+            {
+                path: "recherche/accueil",
+                element: <AccueilRecherche />,
+            },
+            {
+                path: "recherche/personnes",
+                element: <PersonneRecherche />,
             },
             {
                 path: "*",

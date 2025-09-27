@@ -49,9 +49,9 @@ function DefaultHeader() {
                         tabIndex={0}
                         className="menu menu-md dropdown-content bg-base-200 border border-base-200 rounded-box z-1 mt-3 w-52 p-2 shadow"
                     >
-                        <PageMenuLink name="Homepage" path="/home" />
-                        <PageMenuLink name="Portfolio" path="/portfolio" />
-                        <PageMenuLink name="About" path="/about" />
+                        <PageMenuLink name="Accueil" path="/home" />
+                        <PageMenuLink name="Rechercher" path="/recherche/accueil" />
+                        <PageMenuLink name="À propos" path="/about" />
                         <PageMenuLink name="Admin" path="/admin" adminOnly />
                     </ul>
                 </div>

@@ -421,7 +421,7 @@ function AdminPropioPage() {
     return (
         <AdminAuthCheck>
             <Renamer pageTitle="Proprio - NEOGEND" />
-            <div className="min-h-screen bg-base-300">
+            <div className="">
                 <DefaultHeader />
                 <div className="flex flex-col md:flex-row md:items-start items-center justify-center gap-8 p-6">
                     <div className="bg-base-200 p-6 rounded-3xl shadow-lg">
