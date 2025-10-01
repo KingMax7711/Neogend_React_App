@@ -706,14 +706,6 @@ function PersonneRecherche() {
                                     </div>
                                 </div>
                                 <div>
-                                    <span className="text-base-content/60">
-                                        Date de naissance
-                                    </span>
-                                    <div className="font-medium">
-                                        {fmtDate(prop.date_naissance)}
-                                    </div>
-                                </div>
-                                <div>
                                     <span className="text-base-content/60">Sexe</span>
                                     <div className="font-medium">
                                         {fmt(prop.sexe) == "male"
@@ -721,6 +713,15 @@ function PersonneRecherche() {
                                             : "Féminin"}
                                     </div>
                                 </div>
+                                <div>
+                                    <span className="text-base-content/60">
+                                        Date de naissance
+                                    </span>
+                                    <div className="font-medium">
+                                        {fmtDate(prop.date_naissance)}
+                                    </div>
+                                </div>
+
                                 <div>
                                     <span className="text-base-content/60">
                                         Lieu de naissance
