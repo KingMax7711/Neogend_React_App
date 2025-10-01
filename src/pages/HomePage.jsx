@@ -12,12 +12,12 @@ function HomePage() {
 
     return (
         <AuthCheck>
-            <Renamer pageTitle="Home Page" />
+            <Renamer pageTitle="Accueil" />
             <div>
                 <DefaultHeader />
-                <h1>Welcome to the Home Page</h1>
+                <h1>Bienvenue sur la page d'accueil</h1>
                 <div>
-                    <h2>User Information:</h2>
+                    <h2>Informations utilisateur :</h2>
                     <pre>{JSON.stringify(user, null, 2)}</pre>
                 </div>
             </div>

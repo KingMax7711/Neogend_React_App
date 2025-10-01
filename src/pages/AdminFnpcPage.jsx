@@ -818,6 +818,19 @@ function AdminFnpcPage() {
                                         aria-invalid={!!errors.neph}
                                         {...register("neph", {
                                             required: "Le NEPH est requis",
+                                            minLength: {
+                                                value: 12,
+                                                message:
+                                                    "Le NEPH doit comporter exactement 12 chiffres",
+                                            },
+                                            maxLength: {
+                                                value: 12,
+                                                message:
+                                                    "Le NEPH doit comporter exactement 12 chiffres",
+                                            },
+                                            validate: (value) =>
+                                                /^\d{12}$/.test(value) ||
+                                                "Le NEPH doit comporter exactement 12 chiffres",
                                         })}
                                     />
                                     {errors.neph && (
@@ -851,7 +864,11 @@ function AdminFnpcPage() {
                                             "input-error": errors.points,
                                         })}
                                         aria-invalid={!!errors.points}
-                                        {...register("points", { required: true })}
+                                        {...register("points", {
+                                            required: true,
+                                            min: 0,
+                                            max: 12,
+                                        })}
                                     />
                                 </div>
                                 <div className="form-control">

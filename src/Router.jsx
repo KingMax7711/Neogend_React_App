@@ -78,11 +78,11 @@ const router = createBrowserRouter([
                 element: <ProfilePage />,
             },
             {
-                path: "recherche/accueil",
+                path: "neofic/accueil",
                 element: <AccueilRecherche />,
             },
             {
-                path: "recherche/personnes",
+                path: "neofic/personnes",
                 element: <PersonneRecherche />,
             },
             {

@@ -13,7 +13,7 @@ function AccueilRecherche() {
             title: "Personnes",
             subtitle: "FNPC / FPR / TAJ / FIJAIT",
             desc: "Identité, permis, antécédents et alertes liées.",
-            to: "/recherche/personnes",
+            to: "/neofic/personnes",
             icon: <User size={22} strokeWidth={2} />,
         },
         {
@@ -21,7 +21,7 @@ function AccueilRecherche() {
             title: "Véhicules",
             subtitle: "SIV / FOVeS",
             desc: "Immatriculations, signalements et historiques.",
-            to: "/recherche/vehicules",
+            to: "/neofic/vehicules",
             icon: <Car size={22} strokeWidth={2} />,
         },
         {
@@ -29,22 +29,20 @@ function AccueilRecherche() {
             title: "Objets",
             subtitle: "Objets signalés",
             desc: "Objets recherchés, saisis ou déclarés perdus.",
-            to: "/recherche/objets",
+            to: "/neofic/objets",
             icon: <Package size={22} strokeWidth={2} />,
         },
     ];
 
     return (
         <AuthCheck>
-            <Renamer pageTitle="Accueil Recherche" />
+            <Renamer pageTitle="NEOFIC" />
             <div>
                 <DefaultHeader />
 
                 <section className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 mt-8">
                     <header className="text-center mb-8">
-                        <h1 className="text-3xl sm:text-4xl font-semibold">
-                            Accueil Recherche
-                        </h1>
+                        <h1 className="text-3xl sm:text-4xl font-semibold">NEOFIC</h1>
                         <p className="text-base-content/60 mt-2">
                             Choisissez un module de recherche
                         </p>

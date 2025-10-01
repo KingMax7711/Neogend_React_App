@@ -742,8 +742,8 @@ function PersonneRecherche() {
                                     <div className="font-medium">
                                         {[
                                             prop.adresse_numero,
-                                            prop.adresse_type_voie,
-                                            prop.adresse_nom_voie,
+                                            formatName(prop.adresse_type_voie),
+                                            formatName(prop.adresse_nom_voie),
                                         ]
                                             .filter(Boolean)
                                             .join(" ") || "—"}
@@ -1022,7 +1022,10 @@ function PersonneRecherche() {
                                 {/*TODO Reformuler */}
                             </span>
                             <span className="badge badge-ghost">
-                                NEPH: {fmt(fpr?.neph)}
+                                NEPH:{" "}
+                                {fmt(fpr?.neph).slice(0, 6) +
+                                    " " +
+                                    fmt(fpr?.neph).slice(6)}
                             </span>
                             <span className="badge">
                                 N° FIJAIT: {fmt(fpr?.num_fijait)}
@@ -1095,16 +1098,17 @@ function PersonneRecherche() {
                                     <div className="font-medium">
                                         {[
                                             prop.adresse_numero,
-                                            prop.adresse_type_voie,
-                                            prop.adresse_nom_voie,
+                                            formatName(prop.adresse_type_voie),
+                                            formatName(prop.adresse_nom_voie),
                                         ]
                                             .filter(Boolean)
-                                            .join(" ") || "—"}{" "}
+                                            .join(" ") || "—"}
+                                        {", "}
                                         {prop.adresse_code_postal || ""}
                                         {prop.adresse_code_postal && prop.adresse_commune
                                             ? " "
                                             : ""}
-                                        {prop.adresse_commune || ""}
+                                        {prop.adresse_commune.toUpperCase() || ""}
                                     </div>
                                 </div>
                             </div>
@@ -1264,7 +1268,7 @@ function PersonneRecherche() {
 
     return (
         <AuthCheck>
-            <Renamer pageTitle="Personnes - Recherche" />
+            <Renamer pageTitle="NEOFIC - Personnes" />
             <div>
                 <DefaultHeader />
 

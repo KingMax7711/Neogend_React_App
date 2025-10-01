@@ -50,8 +50,8 @@ function DefaultHeader() {
                         className="menu menu-md dropdown-content bg-base-200 border border-base-200 rounded-box z-1 mt-3 w-52 p-2 shadow"
                     >
                         <PageMenuLink name="Accueil" path="/home" />
-                        <PageMenuLink name="Rechercher" path="/recherche/accueil" />
-                        <PageMenuLink name="À propos" path="/about" />
+                        <PageMenuLink name="NEOFIC" path="/neofic/accueil" />
+                        <PageMenuLink name="PVe" path="/pve/accueil" />
                         <PageMenuLink name="Admin" path="/admin" adminOnly />
                     </ul>
                 </div>
