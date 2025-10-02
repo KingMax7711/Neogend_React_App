@@ -2,6 +2,7 @@ import React from "react";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useAuthStore } from "../stores/authStore";
 import { useForm } from "react-hook-form";
+import RHFDateText from "../components/RHFDateText.jsx";
 import axios from "axios";
 import clsx from "clsx";
 import { X } from "lucide-react";
@@ -519,6 +520,7 @@ function AdminInfracPage() {
         reset,
         // eslint-disable-next-line no-unused-vars
         watch,
+        control,
         formState: { isSubmitting, errors },
     } = useForm({
         defaultValues: {
@@ -785,15 +787,11 @@ function AdminInfracPage() {
                                             Date d'Infraction
                                         </span>
                                     </label>
-                                    <input
-                                        type="date"
-                                        className={clsx("input input-bordered", {
-                                            "input-error": errors.date_infraction,
-                                        })}
-                                        aria-invalid={!!errors.date_infraction}
-                                        {...register("date_infraction", {
-                                            required: true,
-                                        })}
+                                    <RHFDateText
+                                        control={control}
+                                        name="date_infraction"
+                                        className="input input-bordered w-full"
+                                        rules={{ required: true }}
                                     />
                                 </div>
                                 <div className="form-control">

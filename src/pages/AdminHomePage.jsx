@@ -2,6 +2,7 @@ import React from "react";
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import RHFDateText from "../components/RHFDateText.jsx";
 import axios from "axios";
 import API from "../global/API";
 import Renamer from "../components/Renamer";
@@ -453,6 +454,7 @@ function AdminHomePage() {
         register,
         handleSubmit,
         watch,
+        control,
         formState: { errors },
     } = useForm();
     const filterUsers = (list, termRaw) => {
@@ -510,7 +512,7 @@ function AdminHomePage() {
                             <p className="mb-4 text-center italic">
                                 Permet la consultation et la modification des fichiers
                             </p>
-                            <div className="grid grid-cols-1 xxl:grid-cols-2 gap-2">
+                            <div className="grid grid-cols-1 xxl:grid-cols-3 gap-2">
                                 {filesList.map((fileName) => (
                                     <FileInspectGridCase
                                         key={fileName.name}
@@ -752,19 +754,14 @@ function AdminHomePage() {
                                                         />
                                                     </div>
                                                     <div className="flex gap-2">
-                                                        <input
-                                                            className={clsx(
-                                                                "input input-bordered w-1/2",
-                                                                {
-                                                                    "input-error":
-                                                                        errors.rp_birthdate,
-                                                                },
-                                                            )}
-                                                            type="date"
-                                                            {...register("rp_birthdate", {
-                                                                required: true,
-                                                            })}
-                                                        />
+                                                        <div className="w-1/2">
+                                                            <RHFDateText
+                                                                control={control}
+                                                                name="rp_birthdate"
+                                                                className="input input-bordered w-full"
+                                                                rules={{ required: true }}
+                                                            />
+                                                        </div>
                                                         <select
                                                             className={clsx(
                                                                 "select select-bordered w-1/2",

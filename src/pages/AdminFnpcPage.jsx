@@ -1,7 +1,8 @@
 import React from "react";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useAuthStore } from "../stores/authStore";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
+import RHFDateText from "../components/RHFDateText";
 import axios from "axios";
 import clsx from "clsx";
 import { X } from "lucide-react";
@@ -370,6 +371,7 @@ function AdminFnpcPage() {
         watch,
         setValue,
         getValues,
+        control,
         formState: { isSubmitting, errors },
     } = useForm({
         defaultValues: {
@@ -897,15 +899,10 @@ function AdminFnpcPage() {
                                             Date de délivrance
                                         </span>
                                     </label>
-                                    <input
-                                        type="date"
-                                        className={clsx("input input-bordered", {
-                                            "input-error": errors.date_delivrance,
-                                        })}
-                                        aria-invalid={!!errors.date_delivrance}
-                                        {...register("date_delivrance", {
-                                            required: true,
-                                        })}
+                                    <RHFDateText
+                                        control={control}
+                                        name="date_delivrance"
+                                        rules={{ required: true }}
                                     />
                                 </div>
                                 <div className="form-control">
@@ -933,21 +930,15 @@ function AdminFnpcPage() {
                                             Date d'expiration
                                         </span>
                                     </label>
-                                    <input
-                                        type="date"
-                                        className={clsx("input input-bordered", {
-                                            "input-error": errors.date_expiration,
-                                        })}
-                                        aria-invalid={!!errors.date_expiration}
-                                        {...register("date_expiration", {
-                                            required: true,
-                                            onChange: () => {
-                                                // Si l'utilisateur modifie manuellement, on arrête l'auto-ajustement
-                                                if (selectedId == null) {
-                                                    expirationManuallyEditedRef.current = true;
-                                                }
-                                            },
-                                        })}
+                                    <RHFDateText
+                                        control={control}
+                                        name="date_expiration"
+                                        rules={{ required: true, validate: () => true }}
+                                        onUserChange={() => {
+                                            if (selectedId == null) {
+                                                expirationManuallyEditedRef.current = true;
+                                            }
+                                        }}
                                     />
                                 </div>
                                 <div className="form-control">
@@ -1057,17 +1048,15 @@ function AdminFnpcPage() {
                                                 Date fin probatoire
                                             </span>
                                         </label>
-                                        <input
-                                            type="date"
-                                            className="input input-bordered"
+                                        <RHFDateText
+                                            control={control}
+                                            name="date_probatoire"
                                             disabled={!watch("probatoire")}
-                                            {...register("date_probatoire", {
-                                                onChange: () => {
-                                                    if (selectedId == null) {
-                                                        probatoireManuallyEditedRef.current = true;
-                                                    }
-                                                },
-                                            })}
+                                            onUserChange={() => {
+                                                if (selectedId == null) {
+                                                    probatoireManuallyEditedRef.current = true;
+                                                }
+                                            }}
                                         />
                                     </div>
                                 </div>
@@ -1150,21 +1139,18 @@ function AdminFnpcPage() {
                                                                 {label}
                                                             </span>
                                                         </span>
-                                                        <input
-                                                            type="date"
-                                                            className="input input-bordered input-sm"
+                                                        <RHFDateText
+                                                            control={control}
+                                                            name={dateName}
                                                             disabled={!checked}
-                                                            {...register(dateName, {
-                                                                onChange: () => {
-                                                                    if (
-                                                                        selectedId == null
-                                                                    ) {
-                                                                        manualEditedCatDateRef.current[
-                                                                            k
-                                                                        ] = true;
-                                                                    }
-                                                                },
-                                                            })}
+                                                            className="input input-bordered input-sm"
+                                                            onUserChange={() => {
+                                                                if (selectedId == null) {
+                                                                    manualEditedCatDateRef.current[
+                                                                        k
+                                                                    ] = true;
+                                                                }
+                                                            }}
                                                         />
                                                     </label>
                                                 );

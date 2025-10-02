@@ -2,6 +2,7 @@ import React from "react";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useAuthStore } from "../stores/authStore";
 import { useForm } from "react-hook-form";
+import RHFDateText from "../components/RHFDateText.jsx";
 import axios from "axios";
 import clsx from "clsx";
 import { X } from "lucide-react";
@@ -311,6 +312,7 @@ function AdminPropioPage() {
         register,
         handleSubmit,
         reset,
+        control,
         formState: { isSubmitting, errors },
     } = useForm({
         defaultValues: {
@@ -566,21 +568,14 @@ function AdminPropioPage() {
                                             Date de naissance
                                         </span>
                                     </label>
-                                    <input
-                                        type="date"
-                                        className={clsx("input input-bordered", {
-                                            "input-error": errors.date_naissance,
-                                        })}
-                                        aria-invalid={!!errors.date_naissance}
-                                        {...register("date_naissance", {
+                                    <RHFDateText
+                                        control={control}
+                                        name="date_naissance"
+                                        className="input input-bordered w-full"
+                                        rules={{
                                             required: "La date de naissance est requise",
-                                        })}
+                                        }}
                                     />
-                                    {errors.date_naissance && (
-                                        <span className="text-error text-xs mt-1">
-                                            {errors.date_naissance.message}
-                                        </span>
-                                    )}
                                 </div>
                                 <div className="form-control">
                                     <label className="label">

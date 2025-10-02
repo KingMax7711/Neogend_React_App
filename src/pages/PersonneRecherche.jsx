@@ -11,7 +11,8 @@ import formatName from "../tools/formatName.js";
 
 import { useAuthStore } from "../stores/authStore.js";
 import { Check, Lock, FileText, ShieldAlert, FileSearch, Siren } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
+import RHFDateText from "../components/RHFDateText";
 import clsx from "clsx";
 
 function PersonneRecherche() {
@@ -1198,6 +1199,7 @@ function PersonneRecherche() {
         handleSubmit,
         watch,
         reset,
+        control,
         formState: { errors, isSubmitting },
     } = useForm({
         defaultValues: { prenom: "", nom: "", date_naissance: "" },
@@ -1382,34 +1384,24 @@ function PersonneRecherche() {
                                     )}
                                 </div>
 
-                                {/* Date de naissance */}
+                                {/* Date de naissance (champ texte masqué) */}
                                 <div className="form-control">
                                     <label className="label">
                                         <span className="label-text">
                                             Date de naissance
                                         </span>
                                     </label>
-                                    <input
-                                        type="date"
-                                        max={todayStr}
-                                        className={`input input-bordered ${
-                                            errors.date_naissance ? "input-error" : ""
-                                        }`}
-                                        aria-invalid={!!errors.date_naissance}
-                                        {...register("date_naissance", {
+                                    <RHFDateText
+                                        control={control}
+                                        name="date_naissance"
+                                        rules={{
                                             required: "La date de naissance est requise",
                                             validate: (v) =>
                                                 !v ||
                                                 v <= todayStr ||
                                                 "La date ne peut pas être dans le futur",
-                                        })}
+                                        }}
                                     />
-                                    <br />
-                                    {errors.date_naissance && (
-                                        <span className="text-error text-xs mt-1">
-                                            {errors.date_naissance.message}
-                                        </span>
-                                    )}
                                 </div>
                             </div>
 
@@ -1483,7 +1475,9 @@ function PersonneRecherche() {
                                                 " résultat(s) pour " +
                                                 (formatName(resultList.prenom) || "") +
                                                 " " +
-                                                (formatName(resultList.nom) || "")}
+                                                (formatName(
+                                                    resultList.nom,
+                                                ).toUpperCase() || "")}
                                         </div>
                                         <div className="collapse-content">
                                             <div className="flex flex-col gap-5 mt-2">
@@ -1525,7 +1519,9 @@ function PersonneRecherche() {
                                                 " résultat(s) pour " +
                                                 (formatName(resultList.prenom) || "") +
                                                 " " +
-                                                (formatName(resultList.nom) || "")}
+                                                (formatName(
+                                                    resultList.nom,
+                                                ).toUpperCase() || "")}
                                         </div>
                                         <div className="collapse-content">
                                             <div className="flex flex-col gap-5 mt-2">
@@ -1558,7 +1554,9 @@ function PersonneRecherche() {
                                                 " résultat(s) pour " +
                                                 (formatName(resultList.prenom) || "") +
                                                 " " +
-                                                (formatName(resultList.nom) || "")}
+                                                (formatName(
+                                                    resultList.nom,
+                                                ).toUpperCase() || "")}
                                         </div>
                                         <div className="collapse-content text-sm">
                                             Go to "My Account" settings and select "Edit
@@ -1575,7 +1573,9 @@ function PersonneRecherche() {
                                                 " résultat(s) pour " +
                                                 (formatName(resultList.prenom) || "") +
                                                 " " +
-                                                (formatName(resultList.nom) || "")}
+                                                (formatName(
+                                                    resultList.nom,
+                                                ).toUpperCase() || "")}
                                         </div>
                                         <div className="collapse-content text-sm">
                                             Go to "My Account" settings and select "Edit

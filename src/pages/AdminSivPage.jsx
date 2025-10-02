@@ -10,6 +10,7 @@ import DefaultHeader from "../components/Header.jsx";
 import API from "../global/API";
 import formatName from "../tools/formatName.js";
 import { useForm } from "react-hook-form";
+import RHFDateText from "../components/RHFDateText";
 
 function AdminSivPage() {
     const { user, token } = useAuthStore();
@@ -338,6 +339,7 @@ function AdminSivPage() {
         reset,
         watch,
         setValue,
+        control,
         formState: { isSubmitting, errors },
     } = useForm({
         defaultValues: {
@@ -752,18 +754,10 @@ function AdminSivPage() {
                                             Première mise en circulation
                                         </span>
                                     </label>
-                                    <input
-                                        type="date"
-                                        className={clsx("input input-bordered", {
-                                            "input-error":
-                                                errors.ci_date_premiere_circulation,
-                                        })}
-                                        aria-invalid={
-                                            !!errors.ci_date_premiere_circulation
-                                        }
-                                        {...register("ci_date_premiere_circulation", {
-                                            required: true,
-                                        })}
+                                    <RHFDateText
+                                        control={control}
+                                        name="ci_date_premiere_circulation"
+                                        rules={{ required: true }}
                                     />
                                 </div>
                                 <div className="form-control">
@@ -772,15 +766,10 @@ function AdminSivPage() {
                                             Date du certificat
                                         </span>
                                     </label>
-                                    <input
-                                        type="date"
-                                        className={clsx("input input-bordered", {
-                                            "input-error": errors.ci_date_certificat,
-                                        })}
-                                        aria-invalid={!!errors.ci_date_certificat}
-                                        {...register("ci_date_certificat", {
-                                            required: true,
-                                        })}
+                                    <RHFDateText
+                                        control={control}
+                                        name="ci_date_certificat"
+                                        rules={{ required: true }}
                                     />
                                 </div>
                                 {/* Véhicule */}
@@ -1109,20 +1098,15 @@ function AdminSivPage() {
                                             CT - Date d'échéance
                                         </span>
                                     </label>
-                                    <input
-                                        type="date"
-                                        className={clsx("input input-bordered", {
-                                            "input-error": errors.ct_date_echeance,
-                                        })}
-                                        aria-invalid={!!errors.ct_date_echeance}
-                                        {...register("ct_date_echeance", {
-                                            required: true,
-                                            onChange: () => {
-                                                if (selectedId == null) {
-                                                    ctManuallyEditedRef.current = true;
-                                                }
-                                            },
-                                        })}
+                                    <RHFDateText
+                                        control={control}
+                                        name="ct_date_echeance"
+                                        rules={{ required: true }}
+                                        onUserChange={() => {
+                                            if (selectedId == null) {
+                                                ctManuallyEditedRef.current = true;
+                                            }
+                                        }}
                                     />
                                 </div>
                                 {/* Assurance */}
@@ -1144,13 +1128,9 @@ function AdminSivPage() {
                                             Date du contrat
                                         </span>
                                     </label>
-                                    <input
-                                        type="date"
-                                        className={clsx("input input-bordered", {
-                                            "input-error": errors.as_date_contrat,
-                                        })}
-                                        aria-invalid={!!errors.as_date_contrat}
-                                        {...register("as_date_contrat")}
+                                    <RHFDateText
+                                        control={control}
+                                        name="as_date_contrat"
                                     />
                                 </div>
                             </div>

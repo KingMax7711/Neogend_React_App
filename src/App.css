@@ -138,28 +138,4 @@ input::placeholder {
     opacity: 1;
 }
 
-/* Couleurs du texte du champ date (Chrome/Edge/Safari) */
-input[type="date"]::-webkit-datetime-edit {
-    color: #1f2937; /* texte principal (Slate-800) */
-}
-input[type="date"]::-webkit-datetime-edit-text {
-    color: #9ca3af; /* séparateurs (jj / mm / aaaa) */
-}
-input[type="date"]::-webkit-datetime-edit-year-field,
-input[type="date"]::-webkit-datetime-edit-month-field,
-input[type="date"]::-webkit-datetime-edit-day-field {
-    color: #374151; /* parties éditables (Slate-700) */
-}
-
-/* Aspect "placeholder" quand vide (requiert required ou invalid) */
-input[type="date"]:required:invalid::-webkit-datetime-edit {
-    color: #a3a3a3; /* même teinte que les placeholders */
-}
-
-/* Icône calendrier */
-input[type="date"]::-webkit-calendar-picker-indicator {
-    filter: invert(40%) sepia(12%) saturate(500%) hue-rotate(180deg) brightness(90%)
-        contrast(90%);
-    opacity: 0.9;
-    cursor: pointer;
-}
+/* Nettoyage: styles spécifiques aux <input type="date"> retirés car remplacés par RHFDateText */

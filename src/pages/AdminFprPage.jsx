@@ -2,6 +2,7 @@ import React from "react";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useAuthStore } from "../stores/authStore";
 import { useForm } from "react-hook-form";
+import RHFDateText from "../components/RHFDateText";
 import axios from "axios";
 import clsx from "clsx";
 import { X } from "lucide-react";
@@ -520,6 +521,7 @@ function AdminFprPage() {
         register,
         handleSubmit,
         reset,
+        control,
         formState: { isSubmitting, errors },
     } = useForm({
         defaultValues: {
@@ -789,15 +791,10 @@ function AdminFprPage() {
                                             Date d'enregistrement
                                         </span>
                                     </label>
-                                    <input
-                                        type="date"
-                                        className={clsx("input input-bordered", {
-                                            "input-error": errors.date_enregistrement,
-                                        })}
-                                        aria-invalid={!!errors.date_enregistrement}
-                                        {...register("date_enregistrement", {
-                                            required: true,
-                                        })}
+                                    <RHFDateText
+                                        control={control}
+                                        name="date_enregistrement"
+                                        rules={{ required: true }}
                                     />
                                 </div>
 

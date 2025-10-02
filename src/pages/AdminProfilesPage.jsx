@@ -1,6 +1,7 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
+import RHFDateText from "../components/RHFDateText.jsx";
 import axios from "axios";
 
 // LOCAL
@@ -146,6 +147,7 @@ function AdminProfilePage() {
         handleSubmit,
         reset,
         watch,
+        control,
         formState: { errors },
     } = useForm({
         defaultValues: { field: "", value: "" },
@@ -707,6 +709,19 @@ function AdminProfilePage() {
                                                                     </option>
                                                                 ))}
                                                             </select>
+                                                        );
+                                                    }
+                                                    if (cfg.type === "date") {
+                                                        return (
+                                                            <RHFDateText
+                                                                control={control}
+                                                                name="value"
+                                                                className="input input-bordered w-full"
+                                                                rules={{
+                                                                    required:
+                                                                        "Valeur requise",
+                                                                }}
+                                                            />
                                                         );
                                                     }
                                                     return (
