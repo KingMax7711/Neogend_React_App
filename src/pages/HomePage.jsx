@@ -33,39 +33,39 @@ function HomePage() {
         {
             id: 2,
             title: "PVe",
-            desc: "Rédactions des Procès Verbaux",
+            desc: "Procès Verbaux électroniques",
             icon: <FileWarning size={20} />,
             to: "/pve/accueil",
             enabled: false,
         },
         {
             id: 3,
-            title: "GAV/Retenu",
-            desc: "Formulaire de mise en Garde à Vue/Retenu",
+            title: "GAV",
+            desc: "PV de Garde à Vue & de retenue",
             icon: <DoorClosedLocked size={20} />,
             to: "/gav/accueil",
             enabled: false,
         },
         {
             id: 4,
-            title: "Immobilisation/Fourrière",
-            desc: "Formulaire d'Immobilisation ou de mise en fourrière",
+            title: "IMMO",
+            desc: "PV d'Immobilisation & de Fourrière",
             icon: <CarFront size={20} />,
             to: "/fourriere/accueil",
             enabled: false,
         },
         {
             id: 5,
-            title: "Saisies",
-            desc: "Formulaire de saisies",
+            title: "SAISIE",
+            desc: "PV de saisies",
             icon: <ArchiveRestore size={20} />,
             to: "/saisies/accueil",
             enabled: false,
         },
         {
             id: 6,
-            title: "Rétention du Permis",
-            desc: "Formulaire de rétention du permis de conduire",
+            title: "RET",
+            desc: "PV de rétention du permis de conduire",
             icon: <IdCard size={20} />,
             to: "/retention/accueil",
             enabled: false,
@@ -77,35 +77,7 @@ function HomePage() {
             <Renamer pageTitle="Accueil" />
             <div>
                 <DefaultHeader />
-                <div className="grid grid-cols-1 md:grid-cols-5 grid-rows-3 gap-10 p-4">
-                    {/* My Applications */}
-                    <div className="row-span-3 col-span-2 bg-base-200 p-6 rounded-3xl shadow-lg h-fit">
-                        <h2 className="text-lg font-semibold mb-4 text-center">
-                            Mes Applications
-                        </h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {apps.map((a) => (
-                                <AppCard
-                                    key={a.id}
-                                    title={a.title}
-                                    desc={a.desc}
-                                    to={a.to}
-                                    icon={a.icon}
-                                    enabled={a.enabled}
-                                    ctaLabel="Ouvrir"
-                                />
-                            ))}
-                        </div>
-                    </div>
-                    {/* Futur Notifications */}
-                    <div className="col-span-2 bg-base-200 p-6 rounded-3xl shadow-lg">
-                        <h2 className="text-lg font-semibold mb-4 text-center">
-                            Notifications
-                        </h2>
-                        <div className="flex items-center justify-center h-full text-base-content/50">
-                            (A venir)
-                        </div>
-                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-3 gap-6 md:gap-10 p-4 md:mx-52">
                     {/* Résumé Profil */}
                     <div className="col-span-1 bg-base-200 p-6 rounded-3xl shadow-lg h-fit">
                         <h2 className="text-lg font-semibold mb-4 text-center">
@@ -149,9 +121,45 @@ function HomePage() {
                         )}
                     </div>
                     {/* Remplissage */}
-                    <div className="col-span-2"></div>
+                    <div className="col-span-1 bg-base-200 p-6 rounded-3xl shadow-lg">
+                        <h2 className="text-lg font-semibold mb-4 text-center">
+                            Statistiques
+                        </h2>
+                        <div className="flex items-center justify-center h-full text-base-content/50">
+                            (A venir)
+                        </div>
+                    </div>
+
+                    {/* Futur Notifications */}
+                    <div className="md:col-span-2 bg-base-200 p-6 rounded-3xl shadow-lg">
+                        <h2 className="text-lg font-semibold mb-4 text-center">
+                            Notifications
+                        </h2>
+                        <div className="flex items-center justify-center h-full text-base-content/50">
+                            (A venir)
+                        </div>
+                    </div>
+                    {/* My Applications */}
+                    <div className="md:col-span-2 md:row-span-2 bg-base-200 p-6 rounded-3xl shadow-lg h-fit">
+                        <h2 className="text-lg font-semibold mb-4 text-center">
+                            Mes Applications
+                        </h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {apps.map((a) => (
+                                <AppCard
+                                    key={a.id}
+                                    title={a.title}
+                                    desc={a.desc}
+                                    to={a.to}
+                                    icon={a.icon}
+                                    enabled={a.enabled}
+                                    ctaLabel="Ouvrir"
+                                />
+                            ))}
+                        </div>
+                    </div>
                     {/* Futur Notes IGGN */}
-                    <div className="col-span-1 row-span-2 bg-base-200 p-6 rounded-3xl shadow-lg h-fit">
+                    <div className="md:col-span-2 md:row-span-2 bg-base-200 p-6 rounded-3xl shadow-lg h-fit">
                         <h2 className="text-lg font-semibold mb-4 text-center">
                             Notes IGGN
                         </h2>

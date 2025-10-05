@@ -208,16 +208,18 @@ function AdminHomePage() {
                 {" " +
                     formatName(u.first_name) +
                     " " +
-                    u.last_name.slice(0, 1).toUpperCase() +
-                    "."}
+                    (u?.last_name ? u.last_name.slice(0, 1).toUpperCase() : "") +
+                    (u?.last_name ? "." : "")}
             </td>
             <td>
                 <span className="italic">
                     {" " +
                         formatName(u.rp_first_name) +
                         " " +
-                        u.rp_last_name.slice(0, 1).toUpperCase() +
-                        "."}
+                        (u?.rp_last_name
+                            ? u.rp_last_name.slice(0, 1).toUpperCase()
+                            : "") +
+                        (u?.rp_last_name ? "." : "")}
                 </span>
             </td>
             <td>
@@ -272,7 +274,9 @@ function AdminHomePage() {
                         </p>
                         <p className="text-center">
                             {formatName(u.first_name)}{" "}
-                            {u.last_name.slice(0, 1).toUpperCase()}.
+                            {u?.last_name
+                                ? u.last_name.slice(0, 1).toUpperCase() + "."
+                                : ""}
                         </p>
                         <div className="modal-action flex justify-center">
                             <button
@@ -303,7 +307,8 @@ function AdminHomePage() {
                     ) : (
                         <span className="status status-warning"></span>
                     )}{" "}
-                    {formatName(u.first_name)} {u.last_name.slice(0, 1).toUpperCase()}.
+                    {formatName(u.first_name)}{" "}
+                    {u?.last_name ? u.last_name.slice(0, 1).toUpperCase() + "." : ""}
                 </span>
                 <span
                     className={clsx("badge badge-md ml-2", {
@@ -366,7 +371,9 @@ function AdminHomePage() {
                         </p>
                         <p className="text-center">
                             {formatName(u.first_name)}{" "}
-                            {u.last_name.slice(0, 1).toUpperCase()}.
+                            {u?.last_name
+                                ? u.last_name.slice(0, 1).toUpperCase() + "."
+                                : ""}
                         </p>
                         <div className="modal-action flex justify-center">
                             <button

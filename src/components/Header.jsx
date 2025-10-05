@@ -69,8 +69,10 @@ function DefaultHeader() {
                     {" " +
                         formatName(user?.first_name) +
                         " " +
-                        user?.last_name.slice(0, 1).toUpperCase() +
-                        "."}
+                        (user?.last_name
+                            ? user.last_name.slice(0, 1).toUpperCase()
+                            : "") +
+                        (user?.last_name ? "." : "")}
                 </span>
                 <div className="bg-transparent p-3 rounded-2xl border border-base-100 px-3 py-1.5">
                     <div className="dropdown dropdown-end">
