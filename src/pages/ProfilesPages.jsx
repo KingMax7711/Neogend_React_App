@@ -17,6 +17,7 @@ import { qualificationToFront } from "../tools/qualificationTranslate";
 import { affectationToFront } from "../tools/affectationTranslate";
 import { serverToFront } from "../tools/serverTranslate";
 import { serviceToFront } from "../tools/serviceTranslate";
+import { dbDateToFront } from "../tools/dateTranslate";
 import clsx from "clsx";
 import "../App.css";
 
@@ -87,113 +88,161 @@ function ProfilePage() {
                 <div className="">
                     <DefaultHeader />
                     <Renamer pageTitle={"Profil - Neogend"} />
-                    <div className="flex box-border flex-col items-top justify-center md:flex-row gap-4">
-                        <div className="bg-base-200 p-6 rounded-3xl shadow-lg m-6 flex flex-col gap-4 h-fit">
-                            <h2 className="text-xl font-bold text-center text-neutral">
-                                ADMINISTRATIF
-                            </h2>
-                            <div className="flex flex-col items-center mx-5 gap-5">
-                                <div className="flex flex-col bg-base-300 p-4 rounded-xl w-full gap-5 shadow-lg items-center">
-                                    <h3 className="font-bold underline text-lg">
-                                        Vos informations :
-                                    </h3>
-                                    <div className="flex justify-between w-full flex-col md:flex-row gap-5">
-                                        <div className="w-fit">
-                                            <span className="font-bold">Nom: </span>
-                                            <span>{formatName(user.last_name)}</span>
-                                        </div>
-                                        <div className="w-fit">
-                                            <span className="font-bold">Prénom: </span>
-                                            <span>{formatName(user.first_name)}</span>
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-col justify-center items-left w-full gap-5">
-                                        <div className="w-fit">
-                                            <span className="font-bold">Mail: </span>
-                                            <span>{user.email}</span>
-                                        </div>
-                                        <div className="w-fit">
-                                            <span className="font-bold">
-                                                Identifiant Discord:{" "}
+                    <div className="max-w-screen-xl mx-auto p-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+                            {/* Colonne ADMIN: En-tête + détails */}
+                            <div className="flex flex-col gap-4 h-full">
+                                {/* En-tête admin */}
+                                <div className="bg-base-200 p-5 rounded-3xl shadow-lg flex items-center gap-4">
+                                    <div className="avatar placeholder">
+                                        <div className="bg-neutral text-neutral-content rounded-full w-14">
+                                            <span className="text-xl">
+                                                {`${user?.last_name?.[0] || "?"}${
+                                                    user?.first_name?.[0] || "?"
+                                                }`.toUpperCase()}
                                             </span>
-                                            <span>{user.discord_id}</span>
                                         </div>
                                     </div>
-                                </div>
-                                <div className="flex flex-col bg-base-300 p-4 rounded-xl w-full gap-5 shadow-lg justify-center items-center">
-                                    <h3 className="font-bold underline text-lg">
-                                        Inscription :
-                                    </h3>
-                                    <div className="flex flex-col justify-center items-left w-full gap-5">
-                                        <div className="w-fit">
-                                            <span className="font-bold">Date: </span>
-                                            <span>{user.inscription_date}</span>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="text-lg font-bold truncate">
+                                            <span className="uppercase">
+                                                {(user?.last_name || "—").toUpperCase()}
+                                            </span>{" "}
+                                            <span className="opacity-90">
+                                                {formatName(user?.first_name || "—")}
+                                            </span>
                                         </div>
-                                        <div className="w-fit">
-                                            <span className="font-bold">Statut: </span>
+                                        <div className="mt-2 flex flex-wrap gap-2">
                                             <span
-                                                className={clsx({
-                                                    "badge-success badge":
-                                                        user.inscription_status ===
-                                                        "valid",
-                                                    "badge-warning badge":
-                                                        user.inscription_status ===
-                                                        "pending",
-                                                    "badge-error badge":
-                                                        user.inscription_status ===
-                                                        "denied",
+                                                className={clsx("badge", {
+                                                    "badge-primary":
+                                                        user.privileges === "admin",
+                                                    "badge-info":
+                                                        user.privileges === "mod",
+                                                    "badge-warning":
+                                                        user.privileges === "owner",
+                                                    "badge-success":
+                                                        user.privileges === "player",
                                                 })}
                                             >
-                                                {user.inscription_status === "valid"
-                                                    ? "Validé"
-                                                    : user.inscription_status ===
-                                                      "pending"
-                                                    ? "En attente"
-                                                    : "Refusé"}
+                                                {privilegesToFront(user.privileges)}
+                                            </span>
+                                            <span className="badge badge-ghost">
+                                                Inscrit le{" "}
+                                                {dbDateToFront(user?.inscription_date)}
                                             </span>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex flex-col bg-base-300 p-4 rounded-xl w-full gap-5 shadow-lg justify-center items-center">
-                                    <h3 className="font-bold text-lg underline">
-                                        Vous êtes actuellement :
+                                {/* Détails admin regroupés */}
+                                <div className="bg-base-200 p-5 rounded-3xl shadow-lg flex-1 flex flex-col">
+                                    <h3 className="text-sm uppercase opacity-60 mb-3">
+                                        Administratif
                                     </h3>
-                                    <span
-                                        className={clsx("badge badge-lg", {
-                                            "badge-primary": user.privileges === "admin",
-                                            "badge-info": user.privileges === "mod",
-                                            "badge-warning": user.privileges === "owner",
-                                            "badge-success": user.privileges === "player",
-                                        })}
-                                    >
-                                        {privilegesToFront(user.privileges)}
-                                    </span>
-                                </div>
-                                <div className="flex flex-col bg-base-300 p-4 rounded-xl w-full gap-5 shadow-lg justify-center items-center">
-                                    <h3 className="font-bold text-lg underline">
-                                        Centre d'Aide :
-                                    </h3>
-                                    <div className="flex gap-3 flex-col md:flex-row">
-                                        <a
-                                            className="btn btn-primary"
-                                            href="https://discord.com/channels/541620491161436160/1012092654433095741"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                        >
-                                            Contacter un administrateur
-                                        </a>
-                                        <button
-                                            className="btn btn-secondary"
-                                            onClick={() =>
-                                                document
-                                                    .getElementById(
-                                                        "change_password_modal",
-                                                    )
-                                                    .showModal()
-                                            }
-                                        >
-                                            Changement de mot de passe
-                                        </button>
+                                    <div className="space-y-2">
+                                        <div className="grid grid-cols-[8rem,1fr] items-center">
+                                            <div className="text-xs opacity-60">Mail</div>
+                                            <div className="text-sm font-semibold break-all">
+                                                {user?.email || "—"}
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-[8rem,1fr] items-center">
+                                            <div className="text-xs opacity-60">
+                                                Discord
+                                            </div>
+                                            <div className="text-sm font-semibold">
+                                                {user?.discord_id || "—"}
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-[8rem,1fr] items-center">
+                                            <div className="text-xs opacity-60">
+                                                Inscription
+                                            </div>
+                                            <div className="text-sm font-semibold">
+                                                {dbDateToFront(user?.inscription_date)}
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-[8rem,1fr] items-center">
+                                            <div className="text-xs opacity-60">
+                                                Statut
+                                            </div>
+                                            <div>
+                                                <span
+                                                    className={clsx("badge", {
+                                                        "badge-success":
+                                                            user.inscription_status ===
+                                                            "valid",
+                                                        "badge-warning":
+                                                            user.inscription_status ===
+                                                            "pending",
+                                                        "badge-error":
+                                                            user.inscription_status ===
+                                                            "denied",
+                                                    })}
+                                                >
+                                                    {user.inscription_status === "valid"
+                                                        ? "Validé"
+                                                        : user.inscription_status ===
+                                                          "pending"
+                                                        ? "En attente"
+                                                        : "Refusé"}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-[8rem,1fr] items-center">
+                                            <div className="text-xs opacity-60">
+                                                Privilèges
+                                            </div>
+                                            <div>
+                                                <span
+                                                    className={clsx("badge", {
+                                                        "badge-primary":
+                                                            user.privileges === "admin",
+                                                        "badge-info":
+                                                            user.privileges === "mod",
+                                                        "badge-warning":
+                                                            user.privileges === "owner",
+                                                        "badge-success":
+                                                            user.privileges === "player",
+                                                    })}
+                                                >
+                                                    {privilegesToFront(user.privileges)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="divider my-4"></div>
+                                    <div>
+                                        <div className="text-xs uppercase opacity-60 mb-2">
+                                            Actions
+                                        </div>
+                                        <div className="flex flex-wrap gap-3">
+                                            <a
+                                                className="btn btn-primary"
+                                                href="https://discord.com/channels/541620491161436160/1012092654433095741"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                            >
+                                                Contacter un administrateur
+                                            </a>
+                                            <button
+                                                className="btn btn-secondary"
+                                                onClick={() =>
+                                                    document
+                                                        .getElementById(
+                                                            "change_password_modal",
+                                                        )
+                                                        ?.showModal()
+                                                }
+                                            >
+                                                Changement de mot de passe
+                                            </button>
+                                            {user.temp_password && (
+                                                <span className="badge badge-error badge-outline">
+                                                    Mot de passe temporaire, à changer
+                                                </span>
+                                            )}
+                                        </div>
                                         <dialog
                                             id="change_password_modal"
                                             className="modal"
@@ -354,14 +403,13 @@ function ProfilePage() {
                                                         <button
                                                             type="button"
                                                             className="btn btn-outline"
-                                                            onClick={() => {
-                                                                const dlg =
-                                                                    document.getElementById(
+                                                            onClick={() =>
+                                                                document
+                                                                    .getElementById(
                                                                         "change_password_modal",
-                                                                    );
-                                                                if (dlg && dlg.close)
-                                                                    dlg.close();
-                                                            }}
+                                                                    )
+                                                                    ?.close()
+                                                            }
                                                         >
                                                             Fermer
                                                         </button>
@@ -371,81 +419,49 @@ function ProfilePage() {
                                                         administrateur.
                                                     </p>
                                                 </form>
+                                                <form
+                                                    method="dialog"
+                                                    className="modal-backdrop"
+                                                >
+                                                    <button
+                                                        className="hidden"
+                                                        aria-hidden="true"
+                                                    />
+                                                </form>
                                             </div>
                                         </dialog>
-                                        <div
-                                            className="modal-backdrop"
-                                            onClick={() => {
-                                                const dlg = document.getElementById(
-                                                    "change_password_modal",
-                                                );
-                                                if (dlg && dlg.close) dlg.close();
-                                            }}
-                                        >
-                                            <button
-                                                className="hidden"
-                                                aria-hidden="true"
-                                            />
-                                        </div>
                                     </div>
-                                    {user.temp_password && (
-                                        <div className="w-fit mx-auto mb-2 animate-pulse">
-                                            <span className="bg-error/25 text-neutral p-3 rounded-xl border-error border">
-                                                {" "}
-                                                Mot de passe temporaire, à changer !
-                                            </span>
-                                        </div>
-                                    )}
                                 </div>
                             </div>
-                        </div>
-                        <div className="bg-base-200 p-6 rounded-3xl shadow-lg m-6 flex flex-col gap-4 h-fit">
-                            <h2 className="text-xl font-bold text-center text-neutral">
-                                RÔLE-PLAY
-                            </h2>
-                            <div className="flex flex-col items-center mx-5 gap-5">
-                                <div className="flex flex-col bg-base-300 p-4 rounded-xl w-full gap-5 shadow-lg items-center">
-                                    <h3 className="font-bold underline text-lg">
-                                        Vos informations :
-                                    </h3>
-                                    <div className="flex justify-between w-full flex-col md:flex-row gap-5">
-                                        <div className="w-fit">
-                                            <span className="font-bold">Nom: </span>
-                                            <span>{formatName(user.rp_last_name)}</span>
-                                        </div>
-                                        <div className="w-fit">
-                                            <span className="font-bold">Prénom: </span>
-                                            <span>{formatName(user.rp_first_name)}</span>
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-col justify-center items-left w-full gap-5">
-                                        <div className="w-fit">
-                                            <span className="font-bold">
-                                                Date de naissance:{" "}
-                                            </span>
-                                            <span>{user.rp_birthdate}</span>
-                                        </div>
-                                        <div className="w-fit">
-                                            <span className="font-bold">Sexe: </span>
-                                            <span>
-                                                {user.rp_gender == "male"
-                                                    ? "Homme"
-                                                    : "Femme"}
+
+                            {/* Colonne RP: En-tête + détails */}
+                            <div className="flex flex-col gap-4 h-full">
+                                {/* En-tête RP */}
+                                <div className="bg-base-200 p-5 rounded-3xl shadow-lg flex items-center gap-4">
+                                    <div className="avatar placeholder">
+                                        <div className="bg-neutral text-neutral-content rounded-full w-14">
+                                            <span className="text-xl">
+                                                {`${user?.rp_last_name?.[0] || "?"}${
+                                                    user?.rp_first_name?.[0] || "?"
+                                                }`.toUpperCase()}
                                             </span>
                                         </div>
                                     </div>
-                                </div>
-                                <div className="flex flex-col bg-base-300 p-4 rounded-xl w-full gap-5 shadow-lg justify-center items-center">
-                                    <h3 className="font-bold text-lg underline">
-                                        Profil professionnel :
-                                    </h3>
-                                    <div className="flex flex-col justify-center items-left w-full gap-5">
-                                        <div className="w-fit">
-                                            <span className="font-bold">Grade: </span>
-                                            <span>{gradesToFront(user.rp_grade)}</span>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="text-lg font-bold truncate">
+                                            <span className="uppercase">
+                                                {(
+                                                    user?.rp_last_name || "—"
+                                                ).toUpperCase()}
+                                            </span>{" "}
+                                            <span className="opacity-90">
+                                                {formatName(user?.rp_first_name || "—")}
+                                            </span>
                                         </div>
-                                        <div className="w-fit">
-                                            <span className="font-bold">Service: </span>
+                                        <div className="mt-2 flex flex-wrap gap-2">
+                                            <span className="badge badge-outline">
+                                                {gradesToFront(user?.rp_grade)}
+                                            </span>
                                             <span
                                                 className={clsx("badge", {
                                                     "badge-primary":
@@ -458,41 +474,97 @@ function ProfilePage() {
                                                 {serviceToFront(user.rp_service)}
                                             </span>
                                         </div>
-                                        <div className="w-fit">
-                                            <span className="font-bold">
-                                                {user.rp_service === "gn"
-                                                    ? "NIGEND : "
-                                                    : "NIPOL : "}
-                                            </span>
-                                            <span>{user.rp_nipol}</span>
-                                        </div>
-                                        <div className="w-fit">
-                                            <span className="font-bold">
-                                                Qualification:{" "}
-                                            </span>
-                                            <span>
-                                                {qualificationToFront(user.rp_qualif)}
-                                            </span>
-                                        </div>
                                     </div>
                                 </div>
-                                <div className="flex flex-col bg-base-300 p-4 rounded-xl w-full gap-5 shadow-lg justify-center items-center">
-                                    <h3 className="font-bold text-lg underline">
-                                        Affectation :
+                                {/* Détails RP regroupés */}
+                                <div className="bg-base-200 p-5 rounded-3xl shadow-lg flex-1 flex flex-col">
+                                    <h3 className="text-sm uppercase opacity-60 mb-3">
+                                        Rôle-play
                                     </h3>
-                                    <div className="flex gap-3 flex-col md:flex-row">
-                                        <span>
-                                            <span className="font-bold">
-                                                {user.rp_affectation}
-                                                {" : "}
-                                            </span>
-                                            <span>
+                                    <div className="space-y-2">
+                                        <div className="grid grid-cols-[8rem,1fr] items-center">
+                                            <div className="text-xs opacity-60">
+                                                Naissance
+                                            </div>
+                                            <div className="text-sm font-semibold">
+                                                {dbDateToFront(user?.rp_birthdate)}
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-[8rem,1fr] items-center">
+                                            <div className="text-xs opacity-60">Sexe</div>
+                                            <div className="text-sm font-semibold">
+                                                {user?.rp_gender === "male"
+                                                    ? "Homme"
+                                                    : "Femme"}
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-[8rem,1fr] items-center">
+                                            <div className="text-xs opacity-60">
+                                                Grade
+                                            </div>
+                                            <div>
+                                                <span className="badge badge-outline">
+                                                    {gradesToFront(user?.rp_grade)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-[8rem,1fr] items-center">
+                                            <div className="text-xs opacity-60">
+                                                Service
+                                            </div>
+                                            <div>
+                                                <span
+                                                    className={clsx("badge", {
+                                                        "badge-primary":
+                                                            user.rp_service === "gn",
+                                                        "badge-info":
+                                                            user.rp_service === "pn" ||
+                                                            user.rp_service === "pm",
+                                                    })}
+                                                >
+                                                    {serviceToFront(user.rp_service)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-[8rem,1fr] items-center">
+                                            <div className="text-xs opacity-60">
+                                                {user.rp_service === "gn"
+                                                    ? "NIGEND"
+                                                    : "NIPOL"}
+                                            </div>
+                                            <div className="text-sm font-semibold">
+                                                {user.rp_nipol || "—"}
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-[8rem,1fr] items-center">
+                                            <div className="text-xs opacity-60">
+                                                Qualification
+                                            </div>
+                                            <div className="text-sm font-semibold">
+                                                {qualificationToFront(user.rp_qualif)}
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-[8rem,1fr] items-center">
+                                            <div className="text-xs opacity-60">
+                                                Affectation
+                                            </div>
+                                            <div className="text-sm font-semibold">
                                                 {affectationToFront(user.rp_affectation)}
-                                            </span>
-                                            <span className="badge badge-info badge-sm ml-2">
-                                                {serverToFront(user.rp_server)}
-                                            </span>
-                                        </span>
+                                                {user.rp_affectation
+                                                    ? ` (${user.rp_affectation})`
+                                                    : ""}
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-[8rem,1fr] items-center">
+                                            <div className="text-xs opacity-60">
+                                                Serveur
+                                            </div>
+                                            <div>
+                                                <span className="badge badge-info">
+                                                    {serverToFront(user.rp_server)}
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

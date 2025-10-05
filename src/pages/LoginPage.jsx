@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { IdCardLanyard, KeyRound } from "lucide-react";
+import { IdCardLanyard, KeyRound, AlertTriangle } from "lucide-react";
 import axios from "axios";
 import clsx from "clsx";
 import API from "../global/API";
@@ -83,8 +83,8 @@ function LoginPage() {
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-base-300">
-            <div className="bg-base-200 p-6 rounded-3xl shadow-lg">
+        <div className="flex flex-col flex-1 items-center justify-center">
+            <div className="bg-base-200 p-6 rounded-3xl shadow-lg w-fit max-w-3xl">
                 <div className="flex gap-8">
                     <form
                         onSubmit={handleSubmit(onSubmit)}
@@ -172,6 +172,24 @@ function LoginPage() {
                         alt="GIGN"
                         className="w-auto max-h-[350px] h-auto rounded-3xl hidden md:block"
                     />
+                </div>
+            </div>
+            <div className="w-full max-w-3xl mx-auto mt-4 px-4">
+                <div
+                    className="alert alert-warning shadow-md border border-warning"
+                    role="alert"
+                    aria-live="polite"
+                >
+                    <AlertTriangle className="h-5 w-5 shrink-0" />
+                    <div>
+                        <h3 className="font-bold">Avertissement</h3>
+                        <div className="text-sm leading-snug">
+                            Ce site est un projet communautaire et n'est pas un site
+                            officiel. Il n'est en aucun cas affilié à l'État français, ni
+                            au Ministère de l'Intérieur ni à toute administration
+                            publique.
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

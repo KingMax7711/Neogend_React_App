@@ -1,6 +1,6 @@
 import { NavLink } from "react-router";
 import { useNavigate } from "react-router-dom";
-import { Mail, KeyRound, CircleUserRound } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import { useAuthStore } from "../stores/authStore";
 import { useEffect } from "react";
 import API from "../global/API";
@@ -38,7 +38,7 @@ function SignUpPage() {
     }, []); // pas de deps pour éviter les relances // pas de deps pour éviter les relances
 
     return (
-        <div className="flex flex-col gap-4 min-h-screen w-screen items-center justify-center bg-base-300">
+        <div className="flex flex-col flex-1 gap-4 items-center justify-center">
             <div className="flex gap-8 bg-base-200 p-6 rounded-3xl shadow-lg max-w-3xl">
                 <div className="flex flex-col gap-4 justify-between md:w-2/3">
                     <h1 className="text-4xl font-bold text-center text-neutral">
@@ -84,6 +84,24 @@ function SignUpPage() {
                     alt="GIGN"
                     className="w-auto max-h-[420px] h-auto rounded-3xl hidden md:block"
                 />
+            </div>
+            <div className="w-full max-w-3xl mx-auto mt-4 px-4">
+                <div
+                    className="alert alert-warning shadow-md border border-warning"
+                    role="alert"
+                    aria-live="polite"
+                >
+                    <AlertTriangle className="h-5 w-5 shrink-0" />
+                    <div>
+                        <h3 className="font-bold">Avertissement</h3>
+                        <div className="text-sm leading-snug">
+                            Ce site est un projet communautaire et n'est pas un site
+                            officiel. Il n'est en aucun cas affilié à l'État français, ni
+                            au Ministère de l'Intérieur ni à toute administration
+                            publique.
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );

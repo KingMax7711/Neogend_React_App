@@ -31,7 +31,7 @@ const filesList = [
 
 function FileInspectGridCase({ fileName, fullName }) {
     return (
-        <div className="bg-base-100 p-6 rounded-3xl shadow-lg border border-primary">
+        <div className="bg-base-100 p-6 rounded-3xl shadow-lg border border-primary max-w-80">
             <div className="flex flex-col items-center xl:justify-between">
                 <span className="font-bold">{fileName.toUpperCase()}</span>
                 <div className="flex gap-1">
@@ -519,7 +519,7 @@ function AdminHomePage() {
                             <p className="mb-4 text-center italic">
                                 Permet la consultation et la modification des fichiers
                             </p>
-                            <div className="grid grid-cols-1 xxl:grid-cols-3 gap-2">
+                            <div className="grid grid-cols-1 xxl:grid-cols-2 gap-2">
                                 {filesList.map((fileName) => (
                                     <FileInspectGridCase
                                         key={fileName.name}

@@ -29,7 +29,9 @@ const router = createBrowserRouter([
         path: "/",
         element: (
             <div className="min-h-screen bg-base-300 flex flex-col">
-                <Outlet />
+                <main className="flex-1 flex flex-col">
+                    <Outlet />
+                </main>
                 <Footer />
             </div>
         ),

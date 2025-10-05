@@ -49,7 +49,7 @@ function HomePage() {
         {
             id: 4,
             title: "IMMO",
-            desc: "PV d'Immobilisation & de Fourrière",
+            desc: "PV d'Immobilisation & de mise en Fourrière",
             icon: <CarFront size={20} />,
             to: "/fourriere/accueil",
             enabled: false,
@@ -77,7 +77,7 @@ function HomePage() {
             <Renamer pageTitle="Accueil" />
             <div>
                 <DefaultHeader />
-                <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-3 gap-6 md:gap-10 p-4 md:mx-52">
+                <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-3 gap-6 md:gap-10 p-4 xxl:mx-52">
                     {/* Résumé Profil */}
                     <div className="col-span-1 bg-base-200 p-6 rounded-3xl shadow-lg h-fit">
                         <h2 className="text-lg font-semibold mb-4 text-center">
@@ -140,7 +140,7 @@ function HomePage() {
                         </div>
                     </div>
                     {/* My Applications */}
-                    <div className="md:col-span-2 md:row-span-2 bg-base-200 p-6 rounded-3xl shadow-lg h-fit">
+                    <div className="md:col-span-2 md:row-span-2 bg-base-200 p-6 rounded-3xl shadow-lg md:h-full">
                         <h2 className="text-lg font-semibold mb-4 text-center">
                             Mes Applications
                         </h2>
@@ -159,9 +159,18 @@ function HomePage() {
                         </div>
                     </div>
                     {/* Futur Notes IGGN */}
-                    <div className="md:col-span-2 md:row-span-2 bg-base-200 p-6 rounded-3xl shadow-lg h-fit">
+                    <div className="md:col-span-2 md:row-span-1 bg-base-200 p-6 rounded-3xl shadow-lg md:h-full">
                         <h2 className="text-lg font-semibold mb-4 text-center">
                             Notes IGGN
+                        </h2>
+                        <div className="flex items-center justify-center h-full text-base-content/50">
+                            (A venir)
+                        </div>
+                    </div>
+                    {/* Futur Notes DGGN */}
+                    <div className="md:col-span-2 md:row-span-1 bg-base-200 p-6 rounded-3xl shadow-lg md:h-full">
+                        <h2 className="text-lg font-semibold mb-4 text-center">
+                            Notes DGGN
                         </h2>
                         <div className="flex items-center justify-center h-full text-base-content/50">
                             (A venir)
