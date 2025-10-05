@@ -51,7 +51,6 @@ function DefaultHeader() {
                     >
                         <PageMenuLink name="Accueil" path="/home" />
                         <PageMenuLink name="NEOFIC" path="/neofic/accueil" />
-                        <PageMenuLink name="PVe" path="/pve/accueil" />
                         <PageMenuLink name="Admin" path="/admin" adminOnly />
                     </ul>
                 </div>
@@ -90,7 +89,6 @@ function DefaultHeader() {
                             className="menu menu-md dropdown-content bg-base-200 border border-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow"
                         >
                             <PageMenuLink name="Profil" path="/profile" />
-                            <PageMenuLink name="Paramètres" path="/settings" />
                             <button
                                 onClick={handleLogout}
                                 className="btn btn-error btn-outline"
