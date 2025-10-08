@@ -3,23 +3,22 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 
 // LOCAL
-import { useAuthStore } from "../stores/authStore";
+import { useAuthStore } from "../../stores/authStore";
 import axios from "axios";
-import API from "../global/API";
-import Renamer from "../components/Renamer";
-import AuthCheck from "../components/AuthCheck";
-import DefaultHeader from "../components/Header";
-import LoadingComponent from "../components/LoadingComponent";
-import formatName from "../tools/formatName";
-import { privilegesToFront } from "../tools/privilegesTranslate";
-import { gradesToFront } from "../tools/gradesTranslate";
-import { qualificationToFront } from "../tools/qualificationTranslate";
-import { affectationToFront } from "../tools/affectationTranslate";
-import { serverToFront } from "../tools/serverTranslate";
-import { serviceToFront } from "../tools/serviceTranslate";
-import { dbDateToFront } from "../tools/dateTranslate";
+import API from "../../global/API";
+import Renamer from "../../components/Renamer";
+import AuthCheck from "../../components/AuthCheck";
+import DefaultHeader from "../../components/Header";
+import LoadingComponent from "../../components/LoadingComponent";
+import formatName from "../../tools/formatName";
+import { privilegesToFront } from "../../tools/privilegesTranslate";
+import { gradesToFront } from "../../tools/gradesTranslate";
+import { qualificationToFront } from "../../tools/qualificationTranslate";
+import { affectationToFront } from "../../tools/affectationTranslate";
+import { serverToFront } from "../../tools/serverTranslate";
+import { serviceToFront } from "../../tools/serviceTranslate";
+import { dbDateToFront } from "../../tools/dateTranslate";
 import clsx from "clsx";
-import "../App.css";
 
 function ProfilePage() {
     const { user, token, endSession } = useAuthStore();
@@ -78,6 +77,15 @@ function ProfilePage() {
         } finally {
             setPwdLoading(false);
         }
+    };
+
+    const handleForceLogout = async () => {
+        await axios.post(
+            `${API}/connected/user/discard_all_sessions/`,
+            {},
+            { headers: { Authorization: `Bearer ${token}` } },
+        );
+        navigate("/login");
     };
 
     return (
@@ -216,7 +224,7 @@ function ProfilePage() {
                                         <div className="text-xs uppercase opacity-60 mb-2">
                                             Actions
                                         </div>
-                                        <div className="flex flex-wrap gap-3">
+                                        <div className="grid grid-cols-2 gap-4">
                                             <a
                                                 className="btn btn-primary"
                                                 href="https://discord.com/channels/541620491161436160/1012092654433095741"
@@ -237,9 +245,22 @@ function ProfilePage() {
                                             >
                                                 Changement de mot de passe
                                             </button>
+                                            <button
+                                                className="btn btn-warning col-span-2"
+                                                onClick={() =>
+                                                    document
+                                                        .getElementById(
+                                                            "force_logout_modal",
+                                                        )
+                                                        ?.showModal()
+                                                }
+                                            >
+                                                Forcer la déconnexion de tous les
+                                                appareils
+                                            </button>
                                             {user.temp_password && (
-                                                <span className="badge badge-error badge-outline">
-                                                    Mot de passe temporaire, à changer
+                                                <span className="p-3 rounded-xl bg-error/10 border border-error/40 col-span-2 font-semibold text-sm text-center">
+                                                    Mot de passe temporaire, à changer !
                                                 </span>
                                             )}
                                         </div>
@@ -429,6 +450,42 @@ function ProfilePage() {
                                                     />
                                                 </form>
                                             </div>
+                                        </dialog>
+                                        <dialog id="force_logout_modal" className="modal">
+                                            <form method="dialog" className="modal-box">
+                                                <h2 className="font-bold text-lg">
+                                                    Forcer la déconnexion
+                                                </h2>
+                                                <p>
+                                                    Êtes-vous sûr de vouloir forcer la
+                                                    déconnexion de tous les appareils ?
+                                                    <br />
+                                                    <span className="italic text-sm">
+                                                        Vous serez également déconnecté de
+                                                        cet appareil.
+                                                    </span>
+                                                </p>
+                                                <div className="modal-action justify-between">
+                                                    <button
+                                                        className="btn btn-warning"
+                                                        onClick={handleForceLogout}
+                                                    >
+                                                        Confirmer
+                                                    </button>
+                                                    <button
+                                                        className="btn"
+                                                        onClick={() =>
+                                                            document
+                                                                .getElementById(
+                                                                    "force_logout_modal",
+                                                                )
+                                                                ?.close()
+                                                        }
+                                                    >
+                                                        Annuler
+                                                    </button>
+                                                </div>
+                                            </form>
                                         </dialog>
                                     </div>
                                 </div>

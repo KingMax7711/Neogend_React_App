@@ -2,9 +2,9 @@ import React from "react";
 import { NavLink } from "react-router-dom";
 import { User, Car, Package } from "lucide-react";
 
-import DefaultHeader from "../components/Header.jsx";
-import AuthCheck from "../components/AuthCheck.jsx";
-import Renamer from "../components/Renamer.jsx";
+import DefaultHeader from "../../components/Header.jsx";
+import AuthValidCheck from "../../components/AuthValidCheck.jsx";
+import Renamer from "../../components/Renamer.jsx";
 
 function AccueilRecherche() {
     const cards = [
@@ -35,7 +35,7 @@ function AccueilRecherche() {
     ];
 
     return (
-        <AuthCheck>
+        <AuthValidCheck>
             <Renamer pageTitle="NEOFIC" />
             <div>
                 <DefaultHeader />
@@ -83,7 +83,7 @@ function AccueilRecherche() {
                     </div>
                 </section>
             </div>
-        </AuthCheck>
+        </AuthValidCheck>
     );
 }
 

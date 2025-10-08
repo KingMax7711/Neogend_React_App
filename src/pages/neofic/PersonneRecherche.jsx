@@ -2,17 +2,17 @@
 import React from "react";
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";
-import API from "../global/API.js";
+import API from "../../global/API.js";
 
-import DefaultHeader from "../components/Header.jsx";
-import AuthCheck from "../components/AuthCheck.jsx";
-import Renamer from "../components/Renamer.jsx";
-import formatName from "../tools/formatName.js";
+import DefaultHeader from "../../components/Header.jsx";
+import AuthValidCheck from "../../components/AuthValidCheck.jsx";
+import Renamer from "../../components/Renamer.jsx";
+import formatName from "../../tools/formatName.js";
 
-import { useAuthStore } from "../stores/authStore.js";
+import { useAuthStore } from "../../stores/authStore.js";
 import { Check, Lock, FileText, ShieldAlert, FileSearch, Siren } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
-import RHFDateText from "../components/RHFDateText";
+import RHFDateText from "../../components/RHFDateText.jsx";
 import clsx from "clsx";
 
 function PersonneRecherche() {
@@ -1270,7 +1270,7 @@ function PersonneRecherche() {
     };
 
     return (
-        <AuthCheck>
+        <AuthValidCheck>
             <Renamer pageTitle="NEOFIC - Personnes" />
             <div>
                 <DefaultHeader />
@@ -1588,7 +1588,7 @@ function PersonneRecherche() {
                     </div>
                 </section>
             </div>
-        </AuthCheck>
+        </AuthValidCheck>
     );
 }
 

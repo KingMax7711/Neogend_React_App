@@ -5,14 +5,13 @@
 /* eslint-disable no-unused-vars */
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import API from "../global/API";
+import API from "../../global/API";
 import { useNavigate } from "react-router-dom";
-import { useAuthStore } from "../stores/authStore";
-import AdminAuthCheck from "../components/AdminAuthCheck";
-import DefaultHeader from "../components/Header";
-import Renamer from "../components/Renamer";
-import formatName from "../tools/formatName";
-import "../App.css";
+import { useAuthStore } from "../../stores/authStore";
+import AdminAuthCheck from "../../components/AdminAuthCheck";
+import DefaultHeader from "../../components/Header";
+import Renamer from "../../components/Renamer";
+import formatName from "../../tools/formatName";
 
 function AdminUserPage() {
     const navigate = useNavigate();

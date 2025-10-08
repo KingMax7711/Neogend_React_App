@@ -1,17 +1,17 @@
 import React from "react";
 import { useState, useEffect, useRef, useMemo } from "react";
-import { useAuthStore } from "../stores/authStore";
+import { useAuthStore } from "../../stores/authStore.js";
 import { useForm, Controller } from "react-hook-form";
-import RHFDateText from "../components/RHFDateText";
+import RHFDateText from "../../components/RHFDateText.jsx";
 import axios from "axios";
 import clsx from "clsx";
 import { X } from "lucide-react";
 
-import API from "../global/API";
-import AdminAuthCheck from "../components/AdminAuthCheck.jsx";
-import Renamer from "../components/Renamer.jsx";
-import DefaultHeader from "../components/Header.jsx";
-import formatName from "../tools/formatName.js";
+import API from "../../global/API.js";
+import AdminAuthCheck from "../../components/AdminAuthCheck.jsx";
+import Renamer from "../../components/Renamer.jsx";
+import DefaultHeader from "../../components/Header.jsx";
+import formatName from "../../tools/formatName.js";
 
 function AdminFnpcPage() {
     const { user, token } = useAuthStore();

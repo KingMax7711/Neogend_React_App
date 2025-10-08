@@ -2,26 +2,27 @@ import { createBrowserRouter, RouterProvider, Outlet, Navigate } from "react-rou
 import "./App.css";
 
 // Pages publiques
-import LoginPage from "./pages/LoginPage.jsx";
-import SignUpPage from "./pages/SignUpPage.jsx";
-import HomePage from "./pages/HomePage.jsx";
-import PersonneRecherche from "./pages/PersonneRecherche.jsx";
-import AccueilRecherche from "./pages/AccueilRecherche.jsx";
-import VehiculeRecherche from "./pages/VehiculeRecherche.jsx";
+import LoginPage from "./pages/basic/LoginPage.jsx";
+import SignUpPage from "./pages/basic/SignUpPage.jsx";
+import HomePage from "./pages/basic/HomePage.jsx";
+import PersonneRecherche from "./pages/neofic/PersonneRecherche.jsx";
+import AccueilRecherche from "./pages/neofic/AccueilRecherche.jsx";
+import VehiculeRecherche from "./pages/neofic/VehiculeRecherche.jsx";
+import ConditionsGenerales from "./pages/utils/ConditionsGenerales.jsx";
 
 // Pages admin
-import AdminUserPage from "./pages/AdminOnlyPage.jsx";
-import AdminProfilePage from "./pages/AdminProfilesPage.jsx";
-import AdminHomePage from "./pages/AdminHomePage.jsx";
-import ProfilePage from "./pages/ProfilesPages.jsx";
-import AdminPropioPage from "./pages/AdminPropioPage.jsx";
-import AdminFnpcPage from "./pages/AdminFnpcPage.jsx";
-import AdminInfracPage from "./pages/AdminInfracPage.jsx";
-import AdminFprPage from "./pages/AdminFprPage.jsx";
-import AdminSivPage from "./pages/AdminSivPage.jsx";
+import AdminUserPage from "./pages/admin/AdminOnlyPage.jsx";
+import AdminProfilePage from "./pages/admin/AdminProfilesPage.jsx";
+import AdminHomePage from "./pages/admin/AdminHomePage.jsx";
+import ProfilePage from "./pages/basic/ProfilesPages.jsx";
+import AdminPropioPage from "./pages/admin/AdminPropioPage.jsx";
+import AdminFnpcPage from "./pages/admin/AdminFnpcPage.jsx";
+import AdminInfracPage from "./pages/admin/AdminInfracPage.jsx";
+import AdminFprPage from "./pages/admin/AdminFprPage.jsx";
+import AdminSivPage from "./pages/admin/AdminSivPage.jsx";
 
 // Utilitaires
-import UnfindPage from "./pages/UnfindPage.jsx";
+import UnfindPage from "./pages/utils/UnfindPage.jsx";
 import Footer from "./components/Footer.jsx";
 
 const router = createBrowserRouter([
@@ -52,6 +53,10 @@ const router = createBrowserRouter([
             {
                 path: "home",
                 element: <HomePage />,
+            },
+            {
+                path: "conditions",
+                element: <ConditionsGenerales />,
             },
             {
                 path: "admin",

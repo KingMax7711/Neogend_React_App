@@ -2,14 +2,14 @@
 import React from "react";
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";
-import API from "../global/API.js";
+import API from "../../global/API.js";
 
-import DefaultHeader from "../components/Header.jsx";
-import AuthCheck from "../components/AuthCheck.jsx";
-import Renamer from "../components/Renamer.jsx";
-import formatName from "../tools/formatName.js";
+import DefaultHeader from "../../components/Header.jsx";
+import AuthValidCheck from "../../components/AuthValidCheck.jsx";
+import Renamer from "../../components/Renamer.jsx";
+import formatName from "../../tools/formatName.js";
 
-import { useAuthStore } from "../stores/authStore.js";
+import { useAuthStore } from "../../stores/authStore.js";
 import { Check, Lock, FileText, ShieldAlert, Car, Siren, ArchiveX } from "lucide-react";
 import { useForm } from "react-hook-form";
 import clsx from "clsx";
@@ -782,7 +782,7 @@ function VehiculeRecherche() {
     };
 
     return (
-        <AuthCheck>
+        <AuthValidCheck>
             <Renamer pageTitle="NEOFIC - Véhicules" />
             <div>
                 <DefaultHeader />
@@ -999,7 +999,7 @@ function VehiculeRecherche() {
                     </div>
                 </section>
             </div>
-        </AuthCheck>
+        </AuthValidCheck>
     );
 }
 

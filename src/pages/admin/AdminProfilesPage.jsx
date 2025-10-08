@@ -1,28 +1,31 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import RHFDateText from "../components/RHFDateText.jsx";
+import RHFDateText from "../../components/RHFDateText.jsx";
 import axios from "axios";
 
 // LOCAL
-import { useAuthStore } from "../stores/authStore";
-import Renamer from "../components/Renamer";
-import AdminAuthCheck from "../components/AdminAuthCheck";
-import DefaultHeader from "../components/Header";
-import LoadingComponent from "../components/LoadingComponent";
-import formatName from "../tools/formatName";
-import { privilegesToFront } from "../tools/privilegesTranslate";
-import { frontToGrades, gradesToFront } from "../tools/gradesTranslate";
-import { frontToQualification } from "../tools/qualificationTranslate";
-import { qualificationToFront } from "../tools/qualificationTranslate";
-import { affectationToFront, frontToAffectation } from "../tools/affectationTranslate";
-import { frontToServer, serverToFront } from "../tools/serverTranslate";
-import { serviceToFront } from "../tools/serviceTranslate";
-import { dbDateToFront } from "../tools/dateTranslate";
+import { useAuthStore } from "../../stores/authStore.js";
+import Renamer from "../../components/Renamer.jsx";
+import AdminAuthCheck from "../../components/AdminAuthCheck.jsx";
+import DefaultHeader from "../../components/Header.jsx";
+import LoadingComponent from "../../components/LoadingComponent.jsx";
+import formatName from "../../tools/formatName.js";
+import { privilegesToFront } from "../../tools/privilegesTranslate.js";
+import { frontToGrades, gradesToFront } from "../../tools/gradesTranslate.js";
+import { frontToQualification } from "../../tools/qualificationTranslate.js";
+import { qualificationToFront } from "../../tools/qualificationTranslate.js";
+import {
+    affectationToFront,
+    frontToAffectation,
+} from "../../tools/affectationTranslate.js";
+import { frontToServer, serverToFront } from "../../tools/serverTranslate.js";
+import { serviceToFront } from "../../tools/serviceTranslate.js";
+import { dbDateToFront } from "../../tools/dateTranslate.js";
 import { useNavigate } from "react-router-dom";
-import API from "../global/API";
+import API from "../../global/API.js";
 import clsx from "clsx";
-import "../App.css";
+
 import { useParams } from "react-router-dom";
 
 function AdminProfilePage() {
@@ -35,6 +38,7 @@ function AdminProfilePage() {
     const [saveError, setSaveError] = useState("");
     const [saveSuccess, setSaveSuccess] = useState("");
     const [tempPassword, setTempPassword] = useState("");
+    const [forceDisconnect, setForceDisconnect] = useState(false);
     const navigate = useNavigate();
 
     const handleResetPassword = async () => {
@@ -332,6 +336,13 @@ function AdminProfilePage() {
         } finally {
             setSaving(false);
         }
+    };
+
+    const handleForceLogout = async () => {
+        await axios.post(`${API}/admin/users/disconnect/${id}`, null, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        setForceDisconnect(true);
     };
 
     return (
@@ -647,11 +658,46 @@ function AdminProfilePage() {
                                         {formatName(checkUser.rp_last_name)}
                                     </p>
                                     <button
+                                        className={
+                                            "btn btn-error" +
+                                            (forceDisconnect ? " btn-disabled" : "")
+                                        }
+                                        onClick={() =>
+                                            document
+                                                .getElementById("force_logout_modal")
+                                                ?.showModal()
+                                        }
+                                    >
+                                        {forceDisconnect
+                                            ? "Utilisateur déconnecté"
+                                            : "Forcer la déconnexion"}
+                                    </button>
+                                    <button
                                         className="btn btn-info"
                                         onClick={() => navigate("/admin")}
                                     >
                                         Retour à la liste
                                     </button>
+                                    <dialog id="force_logout_modal" className="modal">
+                                        <form method="dialog" className="modal-box">
+                                            <h2 className="text-lg font-bold">
+                                                Déconnexion forcée
+                                            </h2>
+                                            <p>
+                                                Êtes-vous sûr de vouloir déconnecter cet
+                                                utilisateur ?
+                                            </p>
+                                            <div className="modal-action justify-between">
+                                                <button
+                                                    className="btn btn-error"
+                                                    onClick={handleForceLogout}
+                                                >
+                                                    Déconnexion
+                                                </button>
+                                                <button className="btn">Annuler</button>
+                                            </div>
+                                        </form>
+                                    </dialog>
                                 </div>
                                 <div className="bg-base-200 p-6 rounded-3xl shadow-lg flex flex-col gap-4 h-fit border border-info">
                                     <h2 className="text-xl font-bold text-center text-neutral">

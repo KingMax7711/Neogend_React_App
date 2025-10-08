@@ -22,7 +22,7 @@ function DefaultHeader() {
             <NavLink
                 to={path}
                 className={({ isActive }) =>
-                    clsx("btn btn-ghost w-full text-left mb-1", {
+                    clsx("btn btn-ghost w-full text-center mb-1", {
                         "btn-warning btn-outline text-warning hover:text-warning-content":
                             adminOnly,
                         "font-bold text-primary": isActive,
@@ -91,6 +91,10 @@ function DefaultHeader() {
                             className="menu menu-md dropdown-content bg-base-200 border border-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow"
                         >
                             <PageMenuLink name="Profil" path="/profile" />
+                            <PageMenuLink
+                                name="Informations (CGU/RGPD)"
+                                path="/conditions"
+                            />
                             <button
                                 onClick={handleLogout}
                                 className="btn btn-error btn-outline"

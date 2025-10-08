@@ -1,22 +1,23 @@
 import React from "react";
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import RHFDateText from "../components/RHFDateText.jsx";
+import RHFDateText from "../../components/RHFDateText.jsx";
 import axios from "axios";
-import API from "../global/API";
-import Renamer from "../components/Renamer";
-import "../App.css";
-import DefaultHeader from "../components/Header";
-import AdminAuthCheck from "../components/AdminAuthCheck";
-import { useAuthStore } from "../stores/authStore";
-import { privilegesToFront } from "../tools/privilegesTranslate";
-import formatName from "../tools/formatName";
+import API from "../../global/API.js";
+import Renamer from "../../components/Renamer.jsx";
+
+import DefaultHeader from "../../components/Header.jsx";
+import AdminAuthCheck from "../../components/AdminAuthCheck.jsx";
+import { useAuthStore } from "../../stores/authStore.js";
+import { privilegesToFront } from "../../tools/privilegesTranslate.js";
+import formatName from "../../tools/formatName.js";
 import clsx from "clsx";
-import { frontToServer } from "../tools/serverTranslate";
-import { frontToAffectation } from "../tools/affectationTranslate";
-import { frontToGrades } from "../tools/gradesTranslate";
-import { frontToService } from "../tools/serviceTranslate";
+import { frontToServer } from "../../tools/serverTranslate.js";
+import { frontToAffectation } from "../../tools/affectationTranslate.js";
+import { frontToGrades } from "../../tools/gradesTranslate.js";
+import { frontToService } from "../../tools/serviceTranslate.js";
 
 const filesList = [
     { name: "fnpc", fullName: "Fichier National des Permis de Conduire" },
@@ -58,6 +59,26 @@ function AdminHomePage() {
     const [searchTerm, setSearchTerm] = useState("");
     const firstLoadRef = useRef(true);
     const prevHashRef = useRef("");
+    const navigate = useNavigate();
+
+    // Formulaire de création de notification (modal)
+    const {
+        register: registerNotif,
+        handleSubmit: handleNotifSubmit,
+        reset: resetNotif,
+        watch: watchNotif,
+        formState: { errors: notifErrors, isSubmitting: notifSubmitting },
+    } = useForm({
+        defaultValues: {
+            target: "one", // 'one' | 'all'
+            user_id: "",
+            title: "",
+            message: "",
+            redirect_to: "",
+        },
+    });
+    const [notifError, setNotifError] = useState("");
+    const [notifSuccess, setNotifSuccess] = useState("");
 
     const deleteUserHandler = (userId) => {
         axios
@@ -70,6 +91,59 @@ function AdminHomePage() {
             .catch((err) => {
                 console.error("Error deleting user:", err);
             });
+    };
+
+    const handleManageNotifications = async (data) => {
+        try {
+            setNotifError("");
+            setNotifSuccess("");
+            const payloadBase = {
+                title: (data.title || "").trim(),
+                message: (data.message || "").trim(),
+                redirect_to: (data.redirect_to || "").trim() || null,
+            };
+
+            if (!payloadBase.title || !payloadBase.message) {
+                setNotifError("Titre et message sont requis.");
+                return;
+            }
+
+            if (data.target === "all") {
+                await axios.post(`${API}/notifications/create_all/`, payloadBase, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+            } else {
+                const userId = Number(data.user_id);
+                if (!userId) {
+                    setNotifError("Veuillez sélectionner un utilisateur.");
+                    return;
+                }
+                await axios.post(
+                    `${API}/notifications/create/`,
+                    { ...payloadBase, user_id: userId },
+                    { headers: { Authorization: `Bearer ${token}` } },
+                );
+            }
+
+            setNotifSuccess("Notification envoyée avec succès.");
+            resetNotif({
+                target: data.target,
+                user_id: "",
+                title: "",
+                message: "",
+                redirect_to: "",
+            });
+            // Fermer le modal après un bref délai pour laisser voir le succès
+            setTimeout(() => {
+                const dlg = document.getElementById("manage_notifications_modal");
+                if (dlg) dlg.close();
+                setNotifSuccess("");
+            }, 800);
+        } catch (e) {
+            console.error("Failed to create notification", e);
+            const msg = e?.response?.data?.detail || "Erreur lors de l'envoi";
+            setNotifError(msg);
+        }
     };
 
     const handleCreateUser = (data) => {
@@ -486,6 +560,14 @@ function AdminHomePage() {
             );
         });
     };
+
+    const handleForceLogout = async () => {
+        await axios.post(`${API}/admin/users/disconnect_all/`, null, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        navigate("/login");
+    };
+
     return (
         <AdminAuthCheck>
             <Renamer pageTitle={"Admin - Neogend"} />
@@ -493,23 +575,242 @@ function AdminHomePage() {
                 <DefaultHeader />
                 <div className="bg-base-200 p-6 rounded-3xl shadow-lg m-6 flex flex-col md:flex-row gap-8 h-fit w-fit mx-auto">
                     <div className="flex flex-col gap-4 justify-between items-center md:items-start">
-                        {/* User Info */}
-                        <div className="flex flex-col bg-base-300 p-6 rounded-3xl shadow-lg gap-1 w-fit">
-                            <h2 className="mb-2 text-center font-bold text-lg">
-                                Authentification
-                            </h2>
-                            <div className="flex">
-                                <span className="font-bold">
-                                    {privilegesToFront(user?.privileges)} :
-                                </span>
-                                <span className="ml-2">
-                                    {formatName(user?.first_name)}
-                                </span>
+                        <div className="flex flex-col md:flex-row  justify-between w-full gap-4">
+                            {/* Gestion des Notifications */}
+                            <div className="flex flex-col bg-base-300 p-6 rounded-3xl shadow-lg gap-2">
+                                <h2 className="mb-1 text-center font-bold text-lg">
+                                    Notifications
+                                </h2>
+                                <p className="italic text-center">
+                                    Gérer les notifications
+                                </p>
+                                <button
+                                    className="btn btn-primary"
+                                    onClick={() =>
+                                        document
+                                            .getElementById("manage_notifications_modal")
+                                            .showModal()
+                                    }
+                                >
+                                    Gérer
+                                </button>
                             </div>
-                            <div className="flex">
-                                <span className="font-bold">ID Utilisateur :</span>
-                                <span className="ml-2">{user?.id}</span>
+                            {/* Security Action */}
+                            <div className="flex flex-col bg-error/5 border border-error/40 p-6 rounded-3xl shadow-lg gap-1 md:w-fit">
+                                <h2 className="mb-2 text-center font-bold text-lg">
+                                    Action de sécurité
+                                </h2>
+                                <div className="flex flex-col md:flex-row gap-4">
+                                    <button
+                                        className="btn btn-error btn-outline"
+                                        onClick={() =>
+                                            document
+                                                .getElementById("discard_all_modal")
+                                                .showModal()
+                                        }
+                                    >
+                                        Forcer la déconnexion
+                                    </button>
+                                    <button
+                                        className="btn btn-error btn-outline btn-disabled"
+                                        disabled
+                                    >
+                                        Suspendre l'accès
+                                    </button>
+                                </div>
+                                <dialog id="discard_all_modal" className="modal">
+                                    <form
+                                        method="dialog"
+                                        className="modal-box"
+                                        onSubmit={handleForceLogout}
+                                    >
+                                        <h2 className="font-bold text-lg text-center">
+                                            Êtes-vous sûr de vouloir forcer la déconnexion
+                                            de tous les utilisateurs ?
+                                        </h2>
+                                        <p className="text-center italic">
+                                            Cette action déconnectera tous les
+                                            utilisateurs actuellement connectés, y compris
+                                            vous-même.
+                                        </p>
+                                        <div className="modal-action justify-between">
+                                            <button
+                                                type="submit"
+                                                className="btn btn-error"
+                                            >
+                                                Oui, déconnecter
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="btn"
+                                                onClick={() =>
+                                                    document
+                                                        .getElementById(
+                                                            "discard_all_modal",
+                                                        )
+                                                        .close()
+                                                }
+                                            >
+                                                Annuler
+                                            </button>
+                                        </div>
+                                    </form>
+                                </dialog>
                             </div>
+                            <dialog id="manage_notifications_modal" className="modal">
+                                <div className="modal-box max-w-xl">
+                                    <h2 className="font-bold text-lg text-center">
+                                        Nouvelle notification
+                                    </h2>
+                                    <p className="text-center italic mb-3">
+                                        Envoyer une notification à un utilisateur ou à
+                                        tous.
+                                    </p>
+
+                                    {notifError && (
+                                        <div className="alert alert-error mb-3">
+                                            <span>{notifError}</span>
+                                        </div>
+                                    )}
+                                    {notifSuccess && (
+                                        <div className="alert alert-success mb-3">
+                                            <span>{notifSuccess}</span>
+                                        </div>
+                                    )}
+
+                                    <form
+                                        onSubmit={handleNotifSubmit(
+                                            handleManageNotifications,
+                                        )}
+                                    >
+                                        <div className="flex flex-col gap-3">
+                                            <div className="flex flex-col md:flex-row md:items-center gap-4">
+                                                <label className="label cursor-pointer gap-2">
+                                                    <input
+                                                        type="radio"
+                                                        className="radio"
+                                                        value="one"
+                                                        {...registerNotif("target")}
+                                                        defaultChecked
+                                                    />
+                                                    <span className="label-text">
+                                                        Un utilisateur
+                                                    </span>
+                                                </label>
+                                                <label className="label cursor-pointer gap-2">
+                                                    <input
+                                                        type="radio"
+                                                        className="radio"
+                                                        value="all"
+                                                        {...registerNotif("target")}
+                                                    />
+                                                    <span className="label-text">
+                                                        Tous les utilisateurs
+                                                    </span>
+                                                </label>
+                                            </div>
+
+                                            {watchNotif("target") !== "all" && (
+                                                <select
+                                                    className={clsx(
+                                                        "select select-bordered w-full",
+                                                        {
+                                                            "select-error":
+                                                                notifErrors.user_id,
+                                                        },
+                                                    )}
+                                                    {...registerNotif("user_id", {
+                                                        required:
+                                                            watchNotif("target") !==
+                                                            "all",
+                                                    })}
+                                                >
+                                                    <option value="">
+                                                        Sélectionner un utilisateur…
+                                                    </option>
+                                                    {sortedUsersList.map((u) => (
+                                                        <option key={u.id} value={u.id}>
+                                                            #{u.id} —{" "}
+                                                            {formatName(u.first_name)}{" "}
+                                                            {u.last_name?.toUpperCase()}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            )}
+
+                                            <input
+                                                type="text"
+                                                placeholder="Titre"
+                                                className={clsx(
+                                                    "input input-bordered w-full",
+                                                    {
+                                                        "input-error": notifErrors.title,
+                                                    },
+                                                )}
+                                                {...registerNotif("title", {
+                                                    required: true,
+                                                })}
+                                            />
+
+                                            <textarea
+                                                placeholder="Message"
+                                                className={clsx(
+                                                    "textarea textarea-bordered w-full min-h-32",
+                                                    {
+                                                        "textarea-error":
+                                                            notifErrors.message,
+                                                    },
+                                                )}
+                                                {...registerNotif("message", {
+                                                    required: true,
+                                                })}
+                                            />
+
+                                            <input
+                                                type="text"
+                                                placeholder="URL de redirection (optionnel)"
+                                                className="input input-bordered w-full"
+                                                {...registerNotif("redirect_to")}
+                                            />
+                                        </div>
+
+                                        <div className="modal-action justify-between mt-4">
+                                            <button
+                                                type="submit"
+                                                className={clsx("btn btn-primary", {
+                                                    "btn-disabled": notifSubmitting,
+                                                })}
+                                            >
+                                                {notifSubmitting ? (
+                                                    <>
+                                                        <span className="loading loading-dots mr-2" />
+                                                        Envoi…
+                                                    </>
+                                                ) : (
+                                                    "Envoyer"
+                                                )}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="btn"
+                                                onClick={() =>
+                                                    document
+                                                        .getElementById(
+                                                            "manage_notifications_modal",
+                                                        )
+                                                        .close()
+                                                }
+                                            >
+                                                Annuler
+                                            </button>
+                                        </div>
+                                    </form>
+
+                                    <form method="dialog" className="modal-backdrop">
+                                        <button>close</button>
+                                    </form>
+                                </div>
+                            </dialog>
                         </div>
                         {/* Data Management */}
                         <div className="bg-base-300 p-6 rounded-3xl shadow-lg">

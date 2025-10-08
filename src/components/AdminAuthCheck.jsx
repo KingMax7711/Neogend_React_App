@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { useAuthStore } from "../stores/authStore";
 import LoadingComponent from "./LoadingComponent";
 
@@ -27,8 +27,7 @@ function AdminAuthCheck({ children }) {
 
     if (status === "authenticated" && user) {
         if (!allowed.includes(user.privileges)) {
-            navigate("/home", { replace: true });
-            return <LoadingComponent message="Redirection..." />;
+            return <Navigate to="/home" replace />;
         }
         return <>{children}</>;
     }

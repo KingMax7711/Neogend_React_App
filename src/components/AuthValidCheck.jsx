@@ -7,10 +7,10 @@ import LoadingComponent from "./LoadingComponent";
 // Etats: initializing | recovering | authenticated | unauthenticated | forced-logout
 // Comportement:
 //  - initializing / recovering : tenter ensureSession puis afficher loading avec message approprié
-//  - authenticated : afficher children
+//  - authenticated : Vérifier si inscription status == 'valid' -> afficher children ou redirect /home
 //  - forced-logout / unauthenticated : redirect /login
 
-function AuthCheck({ children }) {
+function AuthValidCheck({ children }) {
     const navigate = useNavigate();
     const { status, user, ensureSession } = useAuthStore();
     const triedRef = useRef(false); // éviter double ensure initial dû à StrictMode
@@ -31,7 +31,12 @@ function AuthCheck({ children }) {
         }
     }, [status, ensureSession, navigate]);
 
-    if (status === "authenticated" && user) return <>{children}</>;
+    if (status === "authenticated" && user) {
+        if (user?.inscription_status === "valid") {
+            return <>{children}</>;
+        }
+        return <Navigate to="/home" replace />;
+    }
 
     if (status === "initializing")
         return <LoadingComponent message="Chargement de la session..." />;
@@ -42,4 +47,4 @@ function AuthCheck({ children }) {
     return <LoadingComponent message="Redirection..." />;
 }
 
-export default AuthCheck;
+export default AuthValidCheck;

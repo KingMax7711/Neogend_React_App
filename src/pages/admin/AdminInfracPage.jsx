@@ -1,18 +1,18 @@
 import React from "react";
 import { useState, useEffect, useRef, useMemo } from "react";
-import { useAuthStore } from "../stores/authStore";
+import { useAuthStore } from "../../stores/authStore.js";
 import { useForm } from "react-hook-form";
-import RHFDateText from "../components/RHFDateText.jsx";
+import RHFDateText from "../../components/RHFDateText.jsx";
 import axios from "axios";
 import clsx from "clsx";
 import { X } from "lucide-react";
 
-import API from "../global/API";
-import AdminAuthCheck from "../components/AdminAuthCheck.jsx";
-import Renamer from "../components/Renamer.jsx";
-import DefaultHeader from "../components/Header.jsx";
-import formatName from "../tools/formatName.js";
-import { dbDateToFront } from "../tools/dateTranslate.js";
+import API from "../../global/API.js";
+import AdminAuthCheck from "../../components/AdminAuthCheck.jsx";
+import Renamer from "../../components/Renamer.jsx";
+import DefaultHeader from "../../components/Header.jsx";
+import formatName from "../../tools/formatName.js";
+import { dbDateToFront } from "../../tools/dateTranslate.js";
 
 function AdminInfracPage() {
     const { user, token } = useAuthStore();
