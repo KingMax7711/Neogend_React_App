@@ -446,6 +446,7 @@ function AdminProfilePage() {
             });
             // setAccountDeleted(true);
             document.getElementById("confirm_delete_modal")?.close();
+            navigate("/admin");
         } catch (e) {
             console.error("Delete error", e);
             setActionError(
