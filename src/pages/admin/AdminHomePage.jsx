@@ -146,7 +146,7 @@ function AdminHomePage() {
             rp_nipol: data.rp_nipol, // nombre
             rp_grade: frontToGrades(data.rp_grade),
             rp_affectation: frontToAffectation(data.rp_affectation),
-            rp_qualification: frontToQualification(data.rp_qualification),
+            rp_qualification: data.rp_qualification,
             rp_server: frontToServer(data.rp_server),
         };
         axios
