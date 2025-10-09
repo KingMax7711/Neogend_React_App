@@ -30,7 +30,7 @@ import { useParams } from "react-router-dom";
 
 function AdminProfilePage() {
     const { id } = useParams();
-    const { token } = useAuthStore();
+    const { token, user } = useAuthStore();
     const [checkUser, setCheckUser] = useState(null);
     const [error, setError] = useState(null);
     const [modifications, setModifications] = useState([]); // [{field, value, label}]
@@ -39,38 +39,76 @@ function AdminProfilePage() {
     const [saveSuccess, setSaveSuccess] = useState("");
     const [tempPassword, setTempPassword] = useState("");
     const [forceDisconnect, setForceDisconnect] = useState(false);
+    const [actionError, setActionError] = useState("");
+    // Permissions (owner-only)
+    const [permValue, setPermValue] = useState("");
+    const [permSaving, setPermSaving] = useState(false);
+    const [permError, setPermError] = useState("");
+    const [permSuccess, setPermSuccess] = useState("");
     const navigate = useNavigate();
 
     const handleResetPassword = async () => {
         if (!id || !token) return;
         setSaveError("");
         setSaveSuccess("");
-
-        // Générer un mot de passe temporaire (plus long + complexe)
-        const generateTempPassword = () => {
-            const chars =
-                "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+";
-            let password = "";
-            const length = 12; // augmenter si besoin
-            for (let i = 0; i < length; i++) {
-                password += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            return password;
-        };
-
-        const newTemp = generateTempPassword();
-        setTempPassword(newTemp); // setState async, on réutilise newTemp pour la requête
+        setActionError("");
         try {
-            const response = await axios.post(
-                `${API}/admin/users/${id}/password`,
-                { new_password: newTemp },
-                { headers: { Authorization: `Bearer ${token}` } },
-            );
-            setSaveSuccess("Mot de passe réinitialisé avec succès.");
-            console.log("Password reset response:", response.data);
+            const response = await axios.post(`${API}/admin/users/${id}/password`, null, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            const temp = response?.data?.temp_password;
+            if (temp) {
+                setTempPassword(temp);
+                setSaveSuccess("Mot de passe temporaire généré.");
+                document.getElementById("reset_password_modal")?.showModal();
+            } else {
+                setActionError("Réponse inattendue du serveur.");
+            }
         } catch (error) {
             console.error("Error resetting password:", error);
-            setSaveError("Impossible de réinitialiser le mot de passe.");
+            setSaveError(
+                error?.response?.data?.detail ||
+                    "Impossible de réinitialiser le mot de passe.",
+            );
+        }
+    };
+
+    const handleValidateInscription = async () => {
+        if (!id || !token) return;
+        setSaveError("");
+        setSaveSuccess("");
+        try {
+            const res = await axios.patch(
+                `${API}/admin/users_update/${id}`,
+                { inscription_status: "valid" },
+                { headers: { Authorization: `Bearer ${token}` } },
+            );
+            setCheckUser((prev) => ({
+                ...prev,
+                ...(res?.data || { inscription_status: "valid" }),
+            }));
+            setSaveSuccess("Inscription validée.");
+            await axios.post(
+                `${API}/notifications/create/`,
+                {
+                    title: "Inscription validée",
+                    message: `Votre inscription a été validée par ${
+                        formatName(user?.rp_first_name) +
+                        " " +
+                        user?.rp_last_name.slice(0, 1).toUpperCase()
+                    }. Vous pouvez désormais accéder à l'ensemble des fonctionnalités.`,
+                    user_id: checkUser?.id,
+                },
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                },
+            );
+        } catch (e) {
+            console.error("Validate inscription error", e);
+            setSaveError(
+                e?.response?.data?.detail ||
+                    "Erreur lors de la validation de l'inscription",
+            );
         }
     };
 
@@ -92,6 +130,11 @@ function AdminProfilePage() {
 
         fetchUserData();
     }, [id, token]);
+
+    // Suivi de la valeur de privilège affichée
+    useEffect(() => {
+        setPermValue(checkUser?.privileges || "");
+    }, [checkUser?.privileges]);
 
     // Listes de grades selon service pour sélection dynamique
     const gradeGendarmerie = [
@@ -145,6 +188,19 @@ function AdminProfilePage() {
         "Agent de Police Judiciaire Adjoint",
         "Agent de la Force Publique",
     ];
+
+    const dicPermModify = {
+        owner: ["owner", "admin", "mod", "player"],
+        admin: ["mod", "player"],
+        mod: ["player"],
+        player: [],
+    };
+
+    const formatDate = (dateStr) => {
+        const options = { year: "numeric", month: "2-digit", day: "2-digit" };
+        const date = new Date(dateStr);
+        return date.toLocaleDateString("fr-FR", options);
+    };
 
     // react-hook-form pour ajout d'une modification à la fois
     const {
@@ -279,6 +335,7 @@ function AdminProfilePage() {
         if (!cfg) return;
         let inputValue = data.value;
         if (cfg.normalize) inputValue = cfg.normalize(inputValue);
+        console.log(inputValue);
 
         // Label lisible (toujours côté front) + valeur envoyée côté backend
         let label;
@@ -287,6 +344,8 @@ function AdminProfilePage() {
         } else if (cfg.type === "grade-select") {
             // inputValue est déjà le code backend (ex: lcl). On reconvertit vers le label lisible.
             label = gradesToFront(inputValue) || inputValue;
+        } else if (cfg.type === "date") {
+            label = formatDate(inputValue) || inputValue;
         } else {
             label = inputValue;
         }
@@ -339,10 +398,60 @@ function AdminProfilePage() {
     };
 
     const handleForceLogout = async () => {
-        await axios.post(`${API}/admin/users/disconnect/${id}`, null, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        setForceDisconnect(true);
+        setActionError("");
+        try {
+            await axios.post(`${API}/admin/users/disconnect/${id}`, null, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            setForceDisconnect(true);
+            document.getElementById("confirm_disconnect_modal")?.close();
+        } catch (e) {
+            console.error("Disconnect error", e);
+            setActionError(
+                e?.response?.data?.detail || "Impossible de forcer la déconnexion.",
+            );
+        }
+    };
+
+    const isOwner = user?.privileges === "owner";
+    const handleSetPrivileges = async () => {
+        if (!id || !token) return;
+        setPermError("");
+        setPermSuccess("");
+        setPermSaving(true);
+        try {
+            await axios.post(
+                `${API}/admin/set_user_privileges/${id}`,
+                { privilege: permValue },
+                { headers: { Authorization: `Bearer ${token}` } },
+            );
+            setCheckUser((prev) => ({ ...prev, privileges: permValue }));
+            setPermSuccess("Privilèges mis à jour.");
+        } catch (e) {
+            console.error("Set privileges error", e);
+            setPermError(
+                e?.response?.data?.detail ||
+                    "Erreur lors de la mise à jour des privilèges",
+            );
+        } finally {
+            setPermSaving(false);
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        setActionError("");
+        try {
+            await axios.delete(`${API}/admin/delete_user/${id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            // setAccountDeleted(true);
+            document.getElementById("confirm_delete_modal")?.close();
+        } catch (e) {
+            console.error("Delete error", e);
+            setActionError(
+                e?.response?.data?.detail || "Impossible de supprimer le compte.",
+            );
+        }
     };
 
     return (
@@ -645,115 +754,353 @@ function AdminProfilePage() {
                             </div>
 
                             {/* Colonne Modifications: Admin + RP + Actions */}
-                            <div className="flex flex-col m-0 gap-4">
-                                <div className="bg-base-200 p-6 rounded-3xl shadow-lg flex flex-col gap-4 h-fit border border-info">
-                                    <h2 className="text-xl font-bold text-center text-neutral">
-                                        Administration du Profil
-                                    </h2>
-                                    <p className="text-center italic">
-                                        de : {formatName(checkUser.first_name)}{" "}
-                                        {formatName(checkUser.last_name)}
-                                        <br />
-                                        Alias : {formatName(checkUser.rp_first_name)}{" "}
-                                        {formatName(checkUser.rp_last_name)}
-                                    </p>
-                                    <button
-                                        className={
-                                            "btn btn-error" +
-                                            (forceDisconnect ? " btn-disabled" : "")
-                                        }
-                                        onClick={() =>
-                                            document
-                                                .getElementById("force_logout_modal")
-                                                ?.showModal()
-                                        }
+                            <div className="m-0 flex flex-col gap-4 h-fit flex-1">
+                                {/* En tête Admin */}
+                                <div className="bg-base-200 p-6 rounded-3xl shadow-lg flex items-center gap-4 text-center">
+                                    <div className="flex-1 min-w-0">
+                                        {dicPermModify[user?.privileges]?.includes(
+                                            checkUser.privileges,
+                                        ) ? (
+                                            <div className="bg-success/10 border border-success/20 p-2 rounded-md">
+                                                <span className="text-success">
+                                                    Vous avez la permission de modifier
+                                                    cet utilisateur.
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <div className="bg-error/10 border border-error/20 p-2 rounded-md">
+                                                <span className="text-error">
+                                                    Vous n'avez pas la permission de
+                                                    modifier cet utilisateur.
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                                {/* Formulaire + liste modifications + actions */}
+                                {actionError && (
+                                    <div className="alert alert-error">
+                                        <span>{actionError}</span>
+                                    </div>
+                                )}
+
+                                {/* Gestion de l'inscription */}
+                                <div className="bg-base-200 p-6 rounded-3xl shadow-lg flex flex-col gap-3">
+                                    <h3 className="text-sm uppercase opacity-60 mb-1">
+                                        Inscription
+                                    </h3>
+                                    {checkUser.inscription_status === "pending" ? (
+                                        checkUser.first_name &&
+                                        checkUser.first_name !== "inconnu" ? (
+                                            <div className="bg-warning/10 border border-warning/20 p-3 rounded">
+                                                <p className="mb-2 text-center">
+                                                    Le profil a été complété par
+                                                    l'utilisateur. Veuillez vérifier les
+                                                    informations puis valider
+                                                    l'inscription.
+                                                </p>
+                                                <button
+                                                    className="btn btn-success mx-auto block"
+                                                    disabled={
+                                                        !dicPermModify[
+                                                            user?.privileges
+                                                        ]?.includes(checkUser.privileges)
+                                                    }
+                                                    onClick={handleValidateInscription}
+                                                >
+                                                    Valider l'inscription
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div className="bg-info/10 border border-info/20 p-3 rounded">
+                                                <p>
+                                                    L'utilisateur n'a pas encore complété
+                                                    son profil.
+                                                </p>
+                                            </div>
+                                        )
+                                    ) : checkUser.inscription_status === "valid" ? (
+                                        <div className="bg-success/10 border border-success/20 p-3 rounded">
+                                            <p>Inscription validée.</p>
+                                        </div>
+                                    ) : (
+                                        <div className="bg-error/10 border border-error/20 p-3 rounded">
+                                            <p>Inscription refusée.</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Actions de sécurité */}
+                                <div className="bg-base-200 p-6 rounded-3xl shadow-lg flex flex-col gap-3">
+                                    <h3 className="text-sm uppercase opacity-60 mb-1">
+                                        Actions
+                                    </h3>
+                                    {forceDisconnect && (
+                                        <div className="alert alert-warning">
+                                            <span>
+                                                Utilisateur déconnecté (token invalidé).
+                                            </span>
+                                        </div>
+                                    )}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                        <button
+                                            className="btn btn-warning btn-outline"
+                                            disabled={
+                                                !dicPermModify[
+                                                    user?.privileges
+                                                ]?.includes(checkUser.privileges)
+                                            }
+                                            onClick={() =>
+                                                document
+                                                    .getElementById(
+                                                        "confirm_disconnect_modal",
+                                                    )
+                                                    ?.showModal()
+                                            }
+                                        >
+                                            Forcer la déconnexion
+                                        </button>
+                                        <button
+                                            className="btn btn-warning btn-outline"
+                                            disabled={
+                                                !dicPermModify[
+                                                    user?.privileges
+                                                ]?.includes(checkUser.privileges)
+                                            }
+                                            onClick={handleResetPassword}
+                                        >
+                                            Réinitialiser le mot de passe
+                                        </button>
+
+                                        <button
+                                            className="btn btn-error btn-outline btn-disabled"
+                                            disabled
+                                        >
+                                            Suspendre l'accès (bientôt)
+                                        </button>
+                                        <button
+                                            className="btn btn-error btn-outline"
+                                            disabled={
+                                                !dicPermModify[
+                                                    user?.privileges
+                                                ]?.includes(checkUser.privileges)
+                                            }
+                                            onClick={() =>
+                                                document
+                                                    .getElementById(
+                                                        "confirm_delete_modal",
+                                                    )
+                                                    ?.showModal()
+                                            }
+                                        >
+                                            Supprimer le compte
+                                        </button>
+                                    </div>
+
+                                    {/* Modals */}
+                                    <dialog
+                                        id="confirm_disconnect_modal"
+                                        className="modal"
                                     >
-                                        {forceDisconnect
-                                            ? "Utilisateur déconnecté"
-                                            : "Forcer la déconnexion"}
-                                    </button>
-                                    <button
-                                        className="btn btn-info"
-                                        onClick={() => navigate("/admin")}
-                                    >
-                                        Retour à la liste
-                                    </button>
-                                    <dialog id="force_logout_modal" className="modal">
                                         <form method="dialog" className="modal-box">
-                                            <h2 className="text-lg font-bold">
-                                                Déconnexion forcée
-                                            </h2>
-                                            <p>
-                                                Êtes-vous sûr de vouloir déconnecter cet
-                                                utilisateur ?
+                                            <h3 className="font-bold text-lg text-center">
+                                                Forcer la déconnexion
+                                            </h3>
+                                            <p className="italic text-center">
+                                                Cette action invalide le token de
+                                                l'utilisateur et le déconnecte
+                                                immédiatement.
                                             </p>
                                             <div className="modal-action justify-between">
                                                 <button
+                                                    type="button"
                                                     className="btn btn-error"
                                                     onClick={handleForceLogout}
                                                 >
-                                                    Déconnexion
+                                                    Confirmer
                                                 </button>
-                                                <button className="btn">Annuler</button>
+                                                <button
+                                                    type="button"
+                                                    className="btn"
+                                                    onClick={() =>
+                                                        document
+                                                            .getElementById(
+                                                                "confirm_disconnect_modal",
+                                                            )
+                                                            ?.close()
+                                                    }
+                                                >
+                                                    Annuler
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </dialog>
+                                    <dialog id="confirm_delete_modal" className="modal">
+                                        <form method="dialog" className="modal-box">
+                                            <h3 className="font-bold text-lg text-center">
+                                                Confirmer la suppression
+                                            </h3>
+                                            <p className="italic text-center">
+                                                Cette action supprimera définitivement le
+                                                compte de l'utilisateur.
+                                            </p>
+                                            <div className="modal-action justify-between">
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-error"
+                                                    onClick={handleDeleteAccount}
+                                                >
+                                                    Confirmer
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className="btn"
+                                                    onClick={() =>
+                                                        document
+                                                            .getElementById(
+                                                                "confirm_delete_modal",
+                                                            )
+                                                            ?.close()
+                                                    }
+                                                >
+                                                    Annuler
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </dialog>
+
+                                    <dialog id="reset_password_modal" className="modal">
+                                        <form method="dialog" className="modal-box">
+                                            <h3 className="font-bold text-lg text-center">
+                                                Mot de passe temporaire
+                                            </h3>
+                                            <p className="italic text-center mb-2">
+                                                Communiquez ce mot de passe à
+                                                l'utilisateur. Il sera invité à le changer
+                                                à sa prochaine connexion.
+                                            </p>
+                                            <div className="join w-full">
+                                                <input
+                                                    readOnly
+                                                    value={tempPassword}
+                                                    className="input input-bordered join-item w-full"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    className="btn join-item"
+                                                    onClick={async () => {
+                                                        try {
+                                                            await navigator.clipboard.writeText(
+                                                                tempPassword,
+                                                            );
+                                                        } catch {
+                                                            // noop
+                                                        }
+                                                    }}
+                                                >
+                                                    Copier
+                                                </button>
+                                            </div>
+                                            <div className="modal-action">
+                                                <button className="btn">Fermer</button>
                                             </div>
                                         </form>
                                     </dialog>
                                 </div>
-                                <div className="bg-base-200 p-6 rounded-3xl shadow-lg flex flex-col gap-4 h-fit border border-info">
-                                    <h2 className="text-xl font-bold text-center text-neutral">
-                                        Modification du profil
-                                    </h2>
-                                    <div className="bg-base-300 p-4 rounded-xl flex flex-col gap-3">
-                                        <h3 className="text-center italic">
-                                            Réinitialisation du Mot de Passe
-                                        </h3>
-                                        <button
-                                            className="btn btn-warning"
-                                            onClick={handleResetPassword}
-                                        >
-                                            Réinitialiser
-                                        </button>
-                                        {tempPassword ? (
-                                            <div className="flex items-center justify-center gap-3">
-                                                <p>Mot de Passe Temporaire :</p>
-                                                <span className="text-center italic p-1 bg-info rounded-lg w-fit">
-                                                    {tempPassword}
-                                                </span>
-                                            </div>
-                                        ) : null}
-                                    </div>
-                                    <div className="bg-base-300 p-4 rounded-xl flex flex-col gap-3">
-                                        <form
-                                            onSubmit={handleSubmit(onAddModification)}
-                                            className="flex flex-col gap-3"
-                                        >
-                                            <div className="flex flex-col md:flex-row gap-2">
-                                                <select
-                                                    className={clsx(
-                                                        "select select-bordered w-full",
-                                                        { "select-error": errors.field },
-                                                    )}
-                                                    {...register("field", {
-                                                        required: "Champ requis",
-                                                    })}
-                                                >
-                                                    <option value="">
-                                                        Quel champ modifier ?
-                                                    </option>
-                                                    {Object.entries(fieldConfig).map(
-                                                        ([key, cfg]) => (
-                                                            <option key={key} value={key}>
-                                                                {cfg.label} ({key})
-                                                            </option>
-                                                        ),
-                                                    )}
-                                                </select>
-                                                {/* Input dynamique */}
+
+                                {/* Modifications (hors statut/date d'inscription) */}
+                                <div className="bg-base-200 p-6 rounded-3xl shadow-lg flex flex-col gap-3">
+                                    <h3 className="text-sm uppercase opacity-60 mb-1">
+                                        Modifications
+                                    </h3>
+                                    {saveError && (
+                                        <div className="alert alert-error">
+                                            <span>{saveError}</span>
+                                        </div>
+                                    )}
+                                    {saveSuccess && (
+                                        <div className="alert alert-success">
+                                            <span>{saveSuccess}</span>
+                                        </div>
+                                    )}
+                                    <form
+                                        onSubmit={handleSubmit(onAddModification)}
+                                        className="flex flex-col gap-3"
+                                    >
+                                        <div className="flex flex-col md:flex-row gap-2">
+                                            <select
+                                                className="select select-bordered md:w-1/3 w-full"
+                                                {...register("field", { required: true })}
+                                                disabled={
+                                                    !dicPermModify[
+                                                        user?.privileges
+                                                    ]?.includes(checkUser.privileges)
+                                                }
+                                            >
+                                                <option value="">Sélectionner</option>
+                                                {Object.entries(fieldConfig)
+                                                    .filter(
+                                                        ([k]) =>
+                                                            ![
+                                                                "inscription_date",
+                                                                "inscription_status",
+                                                                "privileges",
+                                                            ].includes(k),
+                                                    )
+                                                    .map(([key, cfg]) => (
+                                                        <option key={key} value={key}>
+                                                            {cfg.label}
+                                                        </option>
+                                                    ))}
+                                            </select>
+                                            <div className="flex-1">
                                                 {selectedField &&
-                                                    fieldConfig[selectedField] &&
                                                     (() => {
                                                         const cfg =
                                                             fieldConfig[selectedField];
+                                                        if (!cfg) return null;
+                                                        if (
+                                                            cfg.type === "text" ||
+                                                            cfg.type === "email" ||
+                                                            cfg.type === "number"
+                                                        ) {
+                                                            return (
+                                                                <input
+                                                                    type={
+                                                                        cfg.type ===
+                                                                        "number"
+                                                                            ? "number"
+                                                                            : cfg.type
+                                                                    }
+                                                                    className={clsx(
+                                                                        "input input-bordered w-full",
+                                                                        {
+                                                                            "input-error":
+                                                                                errors.value,
+                                                                        },
+                                                                    )}
+                                                                    placeholder={
+                                                                        cfg.label
+                                                                    }
+                                                                    {...register(
+                                                                        "value",
+                                                                        {
+                                                                            required: true,
+                                                                            pattern:
+                                                                                cfg.pattern,
+                                                                        },
+                                                                    )}
+                                                                    disabled={
+                                                                        !dicPermModify[
+                                                                            user
+                                                                                ?.privileges
+                                                                        ]?.includes(
+                                                                            checkUser.privileges,
+                                                                        )
+                                                                    }
+                                                                />
+                                                            );
+                                                        }
                                                         if (cfg.type === "select") {
                                                             return (
                                                                 <select
@@ -767,13 +1114,20 @@ function AdminProfilePage() {
                                                                     {...register(
                                                                         "value",
                                                                         {
-                                                                            required:
-                                                                                "Valeur requise",
+                                                                            required: true,
                                                                         },
                                                                     )}
+                                                                    disabled={
+                                                                        !dicPermModify[
+                                                                            user
+                                                                                ?.privileges
+                                                                        ]?.includes(
+                                                                            checkUser.privileges,
+                                                                        )
+                                                                    }
                                                                 >
                                                                     <option value="">
-                                                                        Valeur...
+                                                                        {cfg.label}
                                                                     </option>
                                                                     {cfg.options.map(
                                                                         (o) => (
@@ -792,31 +1146,17 @@ function AdminProfilePage() {
                                                                 </select>
                                                             );
                                                         }
-                                                        if (cfg.type === "grade-select") {
-                                                            // On dépend du service potentiellement déjà dans modifications ou dans checkUser
-                                                            const serviceMod =
-                                                                modifications.find(
-                                                                    (m) =>
-                                                                        m.field ===
-                                                                        "rp_service",
-                                                                );
-                                                            const effectiveService =
-                                                                serviceMod
-                                                                    ? serviceMod.value
-                                                                    : checkUser?.rp_service; // gn/pn/pm
-                                                            let grades = [];
-                                                            if (effectiveService === "gn")
-                                                                grades = gradeGendarmerie;
-                                                            else if (
-                                                                effectiveService === "pn"
-                                                            )
-                                                                grades =
-                                                                    gradePoliceNationale;
-                                                            else if (
-                                                                effectiveService === "pm"
-                                                            )
-                                                                grades =
-                                                                    gradePoliceMunicipale;
+                                                        if (
+                                                            selectedField === "rp_grade"
+                                                        ) {
+                                                            const service =
+                                                                checkUser.rp_service; // 'gn' | 'pn' | 'pm'
+                                                            const grades =
+                                                                service === "gn"
+                                                                    ? gradeGendarmerie
+                                                                    : service === "pn"
+                                                                    ? gradePoliceNationale
+                                                                    : gradePoliceMunicipale;
                                                             return (
                                                                 <select
                                                                     className={clsx(
@@ -826,26 +1166,33 @@ function AdminProfilePage() {
                                                                                 errors.value,
                                                                         },
                                                                     )}
-                                                                    disabled={
-                                                                        !effectiveService
-                                                                    }
                                                                     {...register(
                                                                         "value",
                                                                         {
-                                                                            required:
-                                                                                "Valeur requise",
+                                                                            required: true,
+                                                                            validate: (
+                                                                                v,
+                                                                            ) =>
+                                                                                !!frontToGrades(
+                                                                                    v,
+                                                                                ),
                                                                         },
                                                                     )}
+                                                                    disabled={
+                                                                        !dicPermModify[
+                                                                            user
+                                                                                ?.privileges
+                                                                        ]?.includes(
+                                                                            checkUser.privileges,
+                                                                        )
+                                                                    }
                                                                 >
                                                                     <option value="">
-                                                                        {effectiveService
-                                                                            ? "Grade..."
-                                                                            : "Choisir service d'abord"}
+                                                                        Grade
                                                                     </option>
                                                                     {grades.map((g) => (
                                                                         <option
                                                                             key={g}
-                                                                            label={g}
                                                                             value={frontToGrades(
                                                                                 g,
                                                                             )}
@@ -858,152 +1205,169 @@ function AdminProfilePage() {
                                                         }
                                                         if (cfg.type === "date") {
                                                             return (
-                                                                <RHFDateText
-                                                                    control={control}
-                                                                    name="value"
-                                                                    className="input input-bordered w-full"
-                                                                    rules={{
-                                                                        required:
-                                                                            "Valeur requise",
-                                                                    }}
-                                                                />
+                                                                <div className="w-full">
+                                                                    <RHFDateText
+                                                                        control={control}
+                                                                        name="value"
+                                                                        className="input input-bordered w-full"
+                                                                        rules={{
+                                                                            required: true,
+                                                                        }}
+                                                                        disabled={
+                                                                            !dicPermModify[
+                                                                                user
+                                                                                    ?.privileges
+                                                                            ]?.includes(
+                                                                                checkUser.privileges,
+                                                                            )
+                                                                        }
+                                                                    />
+                                                                </div>
                                                             );
                                                         }
-                                                        return (
-                                                            <input
-                                                                type={cfg.type}
-                                                                className={clsx(
-                                                                    "input input-bordered w-full",
-                                                                    {
-                                                                        "input-error":
-                                                                            errors.value,
-                                                                    },
-                                                                )}
-                                                                {...register("value", {
-                                                                    required:
-                                                                        "Valeur requise",
-                                                                    pattern: cfg.pattern
-                                                                        ? {
-                                                                              value: cfg.pattern,
-                                                                              message:
-                                                                                  "Format invalide",
-                                                                          }
-                                                                        : undefined,
-                                                                })}
-                                                                placeholder={cfg.label}
-                                                            />
-                                                        );
+                                                        return null;
                                                     })()}
-                                                <button
-                                                    type="submit"
-                                                    className="btn btn-primary md:w-32"
-                                                >
-                                                    Ajouter
-                                                </button>
                                             </div>
-                                            {errors.field && (
-                                                <span className="text-error text-sm">
-                                                    {errors.field.message}
-                                                </span>
-                                            )}
-                                            {errors.value && (
-                                                <span className="text-error text-sm">
-                                                    {errors.value.message}
-                                                </span>
-                                            )}
-                                        </form>
-                                        {/* Liste des modifications préparées */}
-                                        {modifications.length > 0 && (
-                                            <div className="flex flex-col gap-2">
-                                                <h4 className="font-bold text-sm">
-                                                    Modifications en attente :
-                                                </h4>
-                                                <ul className="flex flex-col gap-1">
-                                                    {modifications.map((m) => (
-                                                        <li
-                                                            key={m.field}
-                                                            className="flex items-center justify-between bg-base-100 rounded-xl px-3 py-2 text-sm"
-                                                        >
-                                                            <span>
-                                                                <span className="font-bold">
-                                                                    {
-                                                                        fieldConfig[
-                                                                            m.field
-                                                                        ]?.label
-                                                                    }{" "}
-                                                                    :
-                                                                </span>{" "}
+                                            <button
+                                                type="submit"
+                                                className="btn btn-primary md:w-auto w-full"
+                                                disabled={
+                                                    !dicPermModify[
+                                                        user?.privileges
+                                                    ]?.includes(checkUser.privileges)
+                                                }
+                                            >
+                                                Ajouter
+                                            </button>
+                                        </div>
+                                    </form>
+
+                                    {/* Liste des modifications en attente */}
+                                    <div className="mt-2">
+                                        {!modifications.length ? (
+                                            <div className="text-center italic opacity-60">
+                                                Aucune modification en attente
+                                            </div>
+                                        ) : (
+                                            <ul className="space-y-2">
+                                                {modifications.map((m) => (
+                                                    <li
+                                                        key={m.field}
+                                                        className="flex items-center justify-between bg-base-100 p-2 rounded-md border border-base-content/10"
+                                                    >
+                                                        <div>
+                                                            <span className="font-semibold mr-2">
+                                                                {fieldConfig[m.field]
+                                                                    ?.label || m.field}
+                                                                :
+                                                            </span>
+                                                            <span className="italic">
                                                                 {m.label}
                                                             </span>
-                                                            <button
-                                                                className="btn btn-xs btn-error"
-                                                                onClick={() =>
-                                                                    removeModification(
-                                                                        m.field,
-                                                                    )
-                                                                }
-                                                                type="button"
-                                                            >
-                                                                Retirer
-                                                            </button>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                                <div className="flex gap-2 mt-2">
-                                                    <button
-                                                        className={clsx(
-                                                            "btn btn-success flex-1",
-                                                            { "btn-disabled": saving },
-                                                        )}
-                                                        onClick={submitAll}
-                                                        type="button"
-                                                    >
-                                                        {saving ? (
-                                                            <span className="loading loading-dots" />
-                                                        ) : (
-                                                            "Enregistrer"
-                                                        )}
-                                                    </button>
-                                                    <button
-                                                        className="btn btn-outline btn-warning"
-                                                        onClick={clearModifications}
-                                                        type="button"
-                                                    >
-                                                        Vider
-                                                    </button>
-                                                </div>
-                                                {saveError && (
-                                                    <div className="badge badge-error mt-2">
-                                                        {saveError}
-                                                    </div>
-                                                )}
-                                                {saveSuccess && (
-                                                    <div className="badge badge-success mt-2">
-                                                        {saveSuccess}
-                                                    </div>
-                                                )}
-                                            </div>
+                                                        </div>
+                                                        <button
+                                                            className="btn btn-sm btn-ghost"
+                                                            onClick={() =>
+                                                                removeModification(
+                                                                    m.field,
+                                                                )
+                                                            }
+                                                        >
+                                                            Supprimer
+                                                        </button>
+                                                    </li>
+                                                ))}
+                                            </ul>
                                         )}
-                                        {modifications.length === 0 && (
-                                            <div className="text-xs italic opacity-70">
-                                                Aucune modification en attente.
-                                            </div>
-                                        )}
+                                    </div>
+
+                                    <div className="flex justify-between mt-2">
+                                        <button
+                                            className="btn"
+                                            onClick={clearModifications}
+                                            disabled={!modifications.length}
+                                        >
+                                            Annuler
+                                        </button>
+                                        <button
+                                            className={clsx("btn btn-primary", {
+                                                "btn-disabled":
+                                                    saving ||
+                                                    !modifications.length ||
+                                                    !dicPermModify[
+                                                        user?.privileges
+                                                    ]?.includes(checkUser.privileges),
+                                            })}
+                                            onClick={submitAll}
+                                        >
+                                            {saving ? (
+                                                <>
+                                                    <span className="loading loading-dots mr-2" />
+                                                    Enregistrement…
+                                                </>
+                                            ) : (
+                                                "Enregistrer"
+                                            )}
+                                        </button>
                                     </div>
                                 </div>
-                                {checkUser.temp_password && (
-                                    <div className="bg-error/5 p-6 rounded-3xl shadow-lg flex flex-col gap-4 h-fit border border-error border-dashed">
-                                        <h2 className="text-xl font-bold text-center text-neutral">
-                                            Avertissement
-                                        </h2>
-                                        <p className="text-center italic">
-                                            Le mot de passe de cet utilisateur est un mot
-                                            de passe temporaire. <br /> Merci de lui
-                                            rappeler de le changer dès sa prochaine
-                                            connexion.
-                                        </p>
+
+                                {/* Permissions */}
+                                <div className="bg-base-200 p-6 rounded-3xl shadow-lg flex flex-col gap-3">
+                                    <h3 className="text-sm uppercase opacity-60 mb-1">
+                                        Permissions
+                                    </h3>
+                                    {!isOwner && (
+                                        <div className="alert alert-warning">
+                                            <span>
+                                                Seul un propriétaire peut modifier les
+                                                privilèges.
+                                            </span>
+                                        </div>
+                                    )}
+                                    {permError && (
+                                        <div className="alert alert-error">
+                                            <span>{permError}</span>
+                                        </div>
+                                    )}
+                                    {permSuccess && (
+                                        <div className="alert alert-success">
+                                            <span>{permSuccess}</span>
+                                        </div>
+                                    )}
+                                    <div className="flex flex-col md:flex-row gap-2 items-center md:justify-between">
+                                        <select
+                                            className="select select-bordered md:w-1/2 w-full"
+                                            value={permValue}
+                                            onChange={(e) => setPermValue(e.target.value)}
+                                            disabled={!isOwner || permSaving}
+                                        >
+                                            <option value="player">Utilisateur</option>
+                                            <option value="mod">Modérateur</option>
+                                            <option value="admin">Administrateur</option>
+                                            <option value="owner">Propriétaire</option>
+                                        </select>
+                                        <button
+                                            className={clsx("btn btn-primary", {
+                                                "btn-disabled":
+                                                    !isOwner ||
+                                                    permSaving ||
+                                                    !permValue ||
+                                                    permValue === checkUser?.privileges,
+                                            })}
+                                            onClick={handleSetPrivileges}
+                                        >
+                                            {permSaving ? (
+                                                <>
+                                                    <span className="loading loading-dots mr-2" />
+                                                    Mise à jour…
+                                                </>
+                                            ) : (
+                                                "Mettre à jour"
+                                            )}
+                                        </button>
                                     </div>
-                                )}
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -18,6 +18,7 @@ import { frontToServer } from "../../tools/serverTranslate.js";
 import { frontToAffectation } from "../../tools/affectationTranslate.js";
 import { frontToGrades } from "../../tools/gradesTranslate.js";
 import { frontToService } from "../../tools/serviceTranslate.js";
+import { frontToQualification } from "../../tools/qualificationTranslate.js";
 
 const filesList = [
     { name: "fnpc", fullName: "Fichier National des Permis de Conduire" },
@@ -57,6 +58,7 @@ function AdminHomePage() {
     const [createUserLoading, setCreateUserLoading] = useState(false);
     const [createUserError, setCreateUserError] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
+    const [currentTempPassword, setCurrentTempPassword] = useState("");
     const firstLoadRef = useRef(true);
     const prevHashRef = useRef("");
     const navigate = useNavigate();
@@ -79,19 +81,6 @@ function AdminHomePage() {
     });
     const [notifError, setNotifError] = useState("");
     const [notifSuccess, setNotifSuccess] = useState("");
-
-    const deleteUserHandler = (userId) => {
-        axios
-            .delete(`${API}/admin/delete_user/${userId}`, {
-                headers: { Authorization: `Bearer ${token}` },
-            })
-            .then(() => {
-                setUsersList(usersList.filter((u) => u.id !== userId));
-            })
-            .catch((err) => {
-                console.error("Error deleting user:", err);
-            });
-    };
 
     const handleManageNotifications = async (data) => {
         try {
@@ -150,31 +139,37 @@ function AdminHomePage() {
         setCreateUserError("");
         setCreateUserLoading(true);
         const payload = {
-            first_name: (data.first_name || "").trim().toLowerCase(),
-            last_name: (data.last_name || "").trim().toLowerCase(),
-            email: (data.email || "").trim().toLowerCase(),
             discord_id: data.discord_id, // déjà un nombre grâce à valueAsNumber
             rp_first_name: (data.rp_first_name || "").trim().toLowerCase(),
             rp_last_name: (data.rp_last_name || "").trim().toLowerCase(),
-            rp_birthdate: data.rp_birthdate,
-            rp_gender: data.rp_gender,
             rp_service: frontToService(data.rp_service),
             rp_nipol: data.rp_nipol, // nombre
             rp_grade: frontToGrades(data.rp_grade),
             rp_affectation: frontToAffectation(data.rp_affectation),
+            rp_qualification: frontToQualification(data.rp_qualification),
             rp_server: frontToServer(data.rp_server),
         };
-
-        console.log("Payload:", payload);
-
         axios
             .post(`${API}/admin/register/`, payload, {
                 headers: { Authorization: `Bearer ${token}` },
             })
             .then((response) => {
-                console.log("User created successfully:", response.data);
-                document.querySelector("#create_user_modal form").reset();
-                document.getElementById("create_user_modal").close();
+                setCurrentTempPassword(response.data.temp_password);
+                // Reset du formulaire
+                const form = document.querySelector("#create_user_modal form");
+                if (form) {
+                    form.reset();
+                }
+                // Fermer le modal
+                const dlg = document.getElementById("create_user_modal");
+                if (dlg) {
+                    dlg.close();
+                }
+                // Ouvrir le modal du mot de passe temporaire
+                const password_modal = document.getElementById("temp_password_modal");
+                if (password_modal) {
+                    password_modal.showModal();
+                }
 
                 // Réinitialiser le formulaire ou effectuer d'autres actions
             })
@@ -326,46 +321,6 @@ function AdminHomePage() {
                     Consulter
                 </Link>
             </td>
-            <td>
-                <button
-                    className={clsx("btn btn-error btn-outline w-30", {
-                        "btn-disabled": u.id === user?.id,
-                    })}
-                    onClick={() =>
-                        document.getElementById(`delete_user_modal_${u.id}`).showModal()
-                    }
-                >
-                    {u.id === user?.id ? "Non Non :)" : "Supprimer"}
-                </button>
-                <dialog id={`delete_user_modal_${u.id}`} className="modal">
-                    <form method="dialog" className="modal-box">
-                        <h2 className="font-bold text-lg text-center">
-                            Supprimer l'utilisateur
-                        </h2>
-                        <p className="text-center italic">
-                            Vous êtes sur le point de supprimer définitivement cet
-                            utilisateur.
-                        </p>
-                        <p className="text-center">
-                            {formatName(u.first_name)}{" "}
-                            {u?.last_name
-                                ? u.last_name.slice(0, 1).toUpperCase() + "."
-                                : ""}
-                        </p>
-                        <div className="modal-action flex justify-center">
-                            <button
-                                className="btn btn-error btn-outline"
-                                onClick={() => deleteUserHandler(u.id)}
-                            >
-                                Supprimer
-                            </button>
-                            <button className="btn btn-primary btn-outline">
-                                Annuler
-                            </button>
-                        </div>
-                    </form>
-                </dialog>
-            </td>
         </tr>
     );
 
@@ -424,44 +379,6 @@ function AdminHomePage() {
                 >
                     Consulter
                 </Link>
-                <button
-                    className="btn btn-error btn-outline flex-1"
-                    onClick={() =>
-                        document
-                            .getElementById(`delete_user_modal_mobile_${u.id}`)
-                            .showModal()
-                    }
-                >
-                    Supprimer
-                </button>
-                <dialog id={`delete_user_modal_mobile_${u.id}`} className="modal">
-                    <form method="dialog" className="modal-box">
-                        <h2 className="font-bold text-lg text-center">
-                            Supprimer l'utilisateur
-                        </h2>
-                        <p className="text-center italic">
-                            Vous êtes sur le point de supprimer définitivement cet
-                            utilisateur.
-                        </p>
-                        <p className="text-center">
-                            {formatName(u.first_name)}{" "}
-                            {u?.last_name
-                                ? u.last_name.slice(0, 1).toUpperCase() + "."
-                                : ""}
-                        </p>
-                        <div className="modal-action flex justify-center">
-                            <button
-                                className="btn btn-error btn-outline"
-                                onClick={() => deleteUserHandler(u.id)}
-                            >
-                                Supprimer
-                            </button>
-                            <button className="btn btn-primary btn-outline">
-                                Annuler
-                            </button>
-                        </div>
-                    </form>
-                </dialog>
             </div>
         </div>
     );
@@ -535,6 +452,7 @@ function AdminHomePage() {
         register,
         handleSubmit,
         watch,
+        // eslint-disable-next-line no-unused-vars
         control,
         formState: { errors },
     } = useForm();
@@ -574,7 +492,7 @@ function AdminHomePage() {
             <div className="">
                 <DefaultHeader />
                 <div className="bg-base-200 p-6 rounded-3xl shadow-lg m-6 flex flex-col md:flex-row gap-8 h-fit w-fit mx-auto">
-                    <div className="flex flex-col gap-4 justify-between items-center md:items-start">
+                    <div className="flex flex-col gap-4 justify-between md:justify-start items-center md:items-start">
                         <div className="flex flex-col md:flex-row  justify-between w-full gap-4">
                             {/* Gestion des Notifications */}
                             <div className="flex flex-col bg-base-300 p-6 rounded-3xl shadow-lg gap-2">
@@ -600,7 +518,7 @@ function AdminHomePage() {
                                 <h2 className="mb-2 text-center font-bold text-lg">
                                     Action de sécurité
                                 </h2>
-                                <div className="flex flex-col md:flex-row gap-4">
+                                <div className="flex flex-col xxl:flex-row gap-4">
                                     <button
                                         className="btn btn-error btn-outline"
                                         onClick={() =>
@@ -831,10 +749,343 @@ function AdminHomePage() {
                             </div>
                         </div>
                     </div>
+                    {/* User Management */}
                     <div className="bg-base-300 p-6 rounded-3xl shadow-lg flex flex-col gap-2 items-center w-fit">
-                        <h2 className="text-2xl font-bold mb-4 text-center w-fit">
-                            Gestion des Utilisateurs
-                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] w-full items-center mb-4">
+                            <div className="w-fit">
+                                <span></span>
+                            </div>
+                            <h2 className="text-2xl font-bold text-center w-full md:w-fit">
+                                Gestion des Utilisateurs
+                            </h2>
+                            <div className="md:w-fit md:justify-self-end w-full flex justify-center md:block">
+                                <button
+                                    className="btn btn-primary"
+                                    onClick={() =>
+                                        document
+                                            .getElementById("create_user_modal")
+                                            .showModal()
+                                    }
+                                >
+                                    Créer un Utilisateur
+                                </button>
+                                <dialog id="create_user_modal" className="modal">
+                                    <div className="modal-box">
+                                        <h3 className="font-bold text-lg text-center">
+                                            Créer un Utilisateur
+                                        </h3>
+                                        <p className="py-4 italic">
+                                            Information Personnelle :
+                                        </p>
+                                        <form onSubmit={handleSubmit(handleCreateUser)}>
+                                            <div className="flex flex-col gap-2">
+                                                <input
+                                                    className={clsx(
+                                                        "input input-bordered w-full",
+                                                        {
+                                                            "input-error":
+                                                                errors.discord_id,
+                                                        },
+                                                    )}
+                                                    type="number"
+                                                    placeholder="ID Discord"
+                                                    {...register("discord_id", {
+                                                        required: true,
+                                                    })}
+                                                />
+                                                <select
+                                                    className={clsx(
+                                                        "select select-bordered w-full",
+                                                        {
+                                                            "select-error":
+                                                                errors.rp_server,
+                                                        },
+                                                    )}
+                                                    {...register("rp_server", {
+                                                        required: true,
+                                                        validate: (value) =>
+                                                            frontToServer(value) !==
+                                                            "Aucun",
+                                                    })}
+                                                >
+                                                    <option value="">Serveur</option>
+                                                    {serverList.map((server) => (
+                                                        <option
+                                                            key={server}
+                                                            value={server}
+                                                        >
+                                                            {server}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <p className="italic">Information RP :</p>
+                                                <div className="flex gap-2">
+                                                    <input
+                                                        className={clsx(
+                                                            "input input-bordered w-full",
+                                                            {
+                                                                "input-error":
+                                                                    errors.rp_first_name,
+                                                            },
+                                                        )}
+                                                        type="text"
+                                                        placeholder="Prénom RP"
+                                                        {...register("rp_first_name", {
+                                                            required: true,
+                                                        })}
+                                                    />
+                                                    <input
+                                                        className={clsx(
+                                                            "input input-bordered w-full",
+                                                            {
+                                                                "input-error":
+                                                                    errors.rp_last_name,
+                                                            },
+                                                        )}
+                                                        type="text"
+                                                        placeholder="Nom RP"
+                                                        {...register("rp_last_name", {
+                                                            required: true,
+                                                        })}
+                                                    />
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <select
+                                                        className={clsx(
+                                                            "select select-bordered w-1/2",
+                                                            {
+                                                                "input-error":
+                                                                    errors.rp_service,
+                                                            },
+                                                        )}
+                                                        {...register("rp_service", {
+                                                            required: true,
+                                                            validate: (value) =>
+                                                                frontToService(value) !==
+                                                                "Aucun",
+                                                        })}
+                                                    >
+                                                        <option value="">Service</option>
+                                                        {serviceList.map((service) => (
+                                                            <option
+                                                                key={service}
+                                                                value={service}
+                                                            >
+                                                                {service}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                    <input
+                                                        className={clsx(
+                                                            "input input-bordered w-1/2",
+                                                            {
+                                                                "input-error":
+                                                                    errors.rp_nipol,
+                                                            },
+                                                        )}
+                                                        type="number"
+                                                        placeholder={
+                                                            watch("rp_service") ===
+                                                            "Gendarmerie Nationale"
+                                                                ? "NIGEND"
+                                                                : "NIPOL"
+                                                        }
+                                                        {...register("rp_nipol", {
+                                                            required: true,
+                                                        })}
+                                                    />
+                                                </div>
+                                                <select
+                                                    className={clsx(
+                                                        "select select-bordered w-full",
+                                                        {
+                                                            "input-error":
+                                                                errors.rp_grade,
+                                                        },
+                                                    )}
+                                                    {...register("rp_grade", {
+                                                        required: true,
+                                                        validate: (value) =>
+                                                            frontToGrades(value) !==
+                                                            "Aucun",
+                                                    })}
+                                                >
+                                                    <option value="">Grade</option>
+                                                    {watch("rp_service") ===
+                                                    "Gendarmerie Nationale"
+                                                        ? gradeGendarmerie.map(
+                                                              (grade) => (
+                                                                  <option
+                                                                      key={grade}
+                                                                      value={grade}
+                                                                  >
+                                                                      {grade}
+                                                                  </option>
+                                                              ),
+                                                          )
+                                                        : watch("rp_service") ===
+                                                          "Police Nationale"
+                                                        ? gradePoliceNationale.map(
+                                                              (grade) => (
+                                                                  <option
+                                                                      key={grade}
+                                                                      value={grade}
+                                                                  >
+                                                                      {grade}
+                                                                  </option>
+                                                              ),
+                                                          )
+                                                        : watch("rp_service") ===
+                                                          "Police Nationale"
+                                                        ? gradePoliceNationale.map(
+                                                              (grade) => (
+                                                                  <option
+                                                                      key={grade}
+                                                                      value={grade}
+                                                                  >
+                                                                      {grade}
+                                                                  </option>
+                                                              ),
+                                                          )
+                                                        : watch("rp_service") ===
+                                                          "Police Municipale"
+                                                        ? gradePoliceMunicipale.map(
+                                                              (grade) => (
+                                                                  <option
+                                                                      key={grade}
+                                                                      value={grade}
+                                                                  >
+                                                                      {grade}
+                                                                  </option>
+                                                              ),
+                                                          )
+                                                        : null}
+                                                </select>
+                                                <select
+                                                    className={clsx(
+                                                        "select select-bordered w-full",
+                                                        {
+                                                            "input-error":
+                                                                errors.rp_qualification,
+                                                        },
+                                                    )}
+                                                    {...register("rp_qualification", {
+                                                        required: true,
+                                                        validate: (value) =>
+                                                            frontToQualification(
+                                                                value,
+                                                            ) !== "Aucun",
+                                                    })}
+                                                >
+                                                    <option value="">
+                                                        Qualification
+                                                    </option>
+                                                    <option value="opj">
+                                                        Officier de Police Judiciaire
+                                                    </option>
+                                                    <option value="apj">
+                                                        Agent de Police Judiciaire
+                                                    </option>
+                                                    <option value="apja">
+                                                        Agent de Police Judiciaire Adjoint
+                                                    </option>
+                                                    <option value="afp">
+                                                        Agent de la Force Publique
+                                                    </option>
+                                                </select>
+                                                <select
+                                                    className={clsx(
+                                                        "select select-bordered w-full",
+                                                        {
+                                                            "input-error":
+                                                                errors.rp_affectation,
+                                                        },
+                                                    )}
+                                                    {...register("rp_affectation", {
+                                                        required: true,
+                                                        validate: (value) =>
+                                                            frontToAffectation(value) !==
+                                                            "Aucun",
+                                                    })}
+                                                >
+                                                    <option value="">Affectation</option>
+                                                    {affectationList.map(
+                                                        (affectation) => (
+                                                            <option
+                                                                key={affectation}
+                                                                value={affectation}
+                                                            >
+                                                                {affectation}
+                                                            </option>
+                                                        ),
+                                                    )}
+                                                </select>
+                                                <button
+                                                    className={clsx("btn btn-primary", {
+                                                        "btn-disabled": createUserLoading,
+                                                    })}
+                                                    type="submit"
+                                                >
+                                                    {createUserLoading ? (
+                                                        <>
+                                                            <span className="loading loading-dots"></span>
+                                                            "Création..."
+                                                        </>
+                                                    ) : (
+                                                        "Créer"
+                                                    )}
+                                                </button>
+                                                {createUserError && (
+                                                    <div className="text-error mt-2  text-center">
+                                                        {createUserError}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </form>
+                                    </div>
+
+                                    <form method="dialog" className="modal-backdrop">
+                                        <button>close</button>
+                                    </form>
+                                </dialog>
+                            </div>
+                            <dialog id="temp_password_modal" className="modal">
+                                <form method="dialog" className="modal-box">
+                                    <h3 className="font-bold text-lg text-center">
+                                        Mot de passe temporaire
+                                    </h3>
+                                    <p className="italic text-center mb-2">
+                                        Communiquez ce mot de passe à l'utilisateur. Il
+                                        sera invité à le changer à sa prochaine connexion.
+                                    </p>
+                                    <div className="join w-full">
+                                        <input
+                                            readOnly
+                                            value={currentTempPassword}
+                                            className="input input-bordered join-item w-full"
+                                        />
+                                        <button
+                                            type="button"
+                                            className="btn join-item"
+                                            onClick={async () => {
+                                                try {
+                                                    await navigator.clipboard.writeText(
+                                                        currentTempPassword,
+                                                    );
+                                                } catch {
+                                                    // noop
+                                                }
+                                            }}
+                                        >
+                                            Copier
+                                        </button>
+                                    </div>
+                                    <div className="modal-action">
+                                        <button className="btn">Fermer</button>
+                                    </div>
+                                </form>
+                            </dialog>
+                        </div>
                         <div className="w-full flex flex-col items-center gap-2">
                             <div className="flex items-center gap-2 w-full justify-center">
                                 <input
@@ -875,7 +1126,6 @@ function AdminHomePage() {
                                                 <th>Email</th>
                                                 <th>Autorisation</th>
                                                 <th>Profil</th>
-                                                <th>Supprimer</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -916,368 +1166,6 @@ function AdminHomePage() {
                                             );
                                         return filtered.map((u) => userMobileCard(u));
                                     })()}
-                                </div>
-                                <div className="mt-4 flex justify-center">
-                                    <button
-                                        className="btn btn-primary"
-                                        onClick={() =>
-                                            document
-                                                .getElementById("create_user_modal")
-                                                .showModal()
-                                        }
-                                    >
-                                        Créer un Utilisateur
-                                    </button>
-                                    <dialog id="create_user_modal" className="modal">
-                                        <div className="modal-box">
-                                            <h3 className="font-bold text-lg text-center">
-                                                Créer un Utilisateur
-                                            </h3>
-                                            <p className="py-4 italic">
-                                                Information Personnelle :
-                                            </p>
-                                            <form
-                                                onSubmit={handleSubmit(handleCreateUser)}
-                                            >
-                                                <div className="flex flex-col gap-2">
-                                                    <div className="flex gap-2">
-                                                        <input
-                                                            className={clsx(
-                                                                "input input-bordered w-full",
-                                                                {
-                                                                    "input-error":
-                                                                        errors.first_name,
-                                                                },
-                                                            )}
-                                                            type="text"
-                                                            placeholder="Prénom"
-                                                            {...register("first_name", {
-                                                                required: true,
-                                                            })}
-                                                        />
-                                                        <input
-                                                            className={clsx(
-                                                                "input input-bordered w-full",
-                                                                {
-                                                                    "input-error":
-                                                                        errors.last_name,
-                                                                },
-                                                            )}
-                                                            type="text"
-                                                            placeholder="Nom"
-                                                            {...register("last_name", {
-                                                                required: true,
-                                                            })}
-                                                        />
-                                                    </div>
-                                                    <input
-                                                        className={clsx(
-                                                            "input input-bordered w-full",
-                                                            {
-                                                                "input-error":
-                                                                    errors.email,
-                                                            },
-                                                        )}
-                                                        type="email"
-                                                        placeholder="Email"
-                                                        {...register("email", {
-                                                            required: true,
-                                                            pattern:
-                                                                /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                                                        })}
-                                                    />
-                                                    <input
-                                                        className={clsx(
-                                                            "input input-bordered w-full",
-                                                            {
-                                                                "input-error":
-                                                                    errors.discord_id,
-                                                            },
-                                                        )}
-                                                        type="number"
-                                                        placeholder="ID Discord"
-                                                        {...register("discord_id", {
-                                                            required: true,
-                                                        })}
-                                                    />
-                                                    <select
-                                                        className={clsx(
-                                                            "select select-bordered w-full",
-                                                            {
-                                                                "select-error":
-                                                                    errors.rp_server,
-                                                            },
-                                                        )}
-                                                        {...register("rp_server", {
-                                                            required: true,
-                                                            validate: (value) =>
-                                                                frontToServer(value) !==
-                                                                "Aucun",
-                                                        })}
-                                                    >
-                                                        <option value="">Serveur</option>
-                                                        {serverList.map((server) => (
-                                                            <option
-                                                                key={server}
-                                                                value={server}
-                                                            >
-                                                                {server}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                    <p className="italic">
-                                                        Information RP :
-                                                    </p>
-                                                    <div className="flex gap-2">
-                                                        <input
-                                                            className={clsx(
-                                                                "input input-bordered w-full",
-                                                                {
-                                                                    "input-error":
-                                                                        errors.rp_first_name,
-                                                                },
-                                                            )}
-                                                            type="text"
-                                                            placeholder="Prénom RP"
-                                                            {...register(
-                                                                "rp_first_name",
-                                                                {
-                                                                    required: true,
-                                                                },
-                                                            )}
-                                                        />
-                                                        <input
-                                                            className={clsx(
-                                                                "input input-bordered w-full",
-                                                                {
-                                                                    "input-error":
-                                                                        errors.rp_last_name,
-                                                                },
-                                                            )}
-                                                            type="text"
-                                                            placeholder="Nom RP"
-                                                            {...register("rp_last_name", {
-                                                                required: true,
-                                                            })}
-                                                        />
-                                                    </div>
-                                                    <div className="flex gap-2">
-                                                        <div className="w-1/2">
-                                                            <RHFDateText
-                                                                control={control}
-                                                                name="rp_birthdate"
-                                                                className="input input-bordered w-full"
-                                                                rules={{ required: true }}
-                                                            />
-                                                        </div>
-                                                        <select
-                                                            className={clsx(
-                                                                "select select-bordered w-1/2",
-                                                                {
-                                                                    "input-error":
-                                                                        errors.rp_gender,
-                                                                },
-                                                            )}
-                                                            {...register("rp_gender", {
-                                                                required: true,
-                                                                validate: (value) =>
-                                                                    value !== "" ||
-                                                                    "Veuillez sélectionner un sexe",
-                                                            })}
-                                                        >
-                                                            {" "}
-                                                            <option value="">Sexe</option>
-                                                            <option value="male">
-                                                                Homme
-                                                            </option>
-                                                            <option value="female">
-                                                                Femme
-                                                            </option>
-                                                        </select>
-                                                    </div>
-                                                    <div className="flex gap-2">
-                                                        <select
-                                                            className={clsx(
-                                                                "select select-bordered w-1/2",
-                                                                {
-                                                                    "input-error":
-                                                                        errors.rp_service,
-                                                                },
-                                                            )}
-                                                            {...register("rp_service", {
-                                                                required: true,
-                                                                validate: (value) =>
-                                                                    frontToService(
-                                                                        value,
-                                                                    ) !== "Aucun",
-                                                            })}
-                                                        >
-                                                            <option value="">
-                                                                Service
-                                                            </option>
-                                                            {serviceList.map(
-                                                                (service) => (
-                                                                    <option
-                                                                        key={service}
-                                                                        value={service}
-                                                                    >
-                                                                        {service}
-                                                                    </option>
-                                                                ),
-                                                            )}
-                                                        </select>
-                                                        <input
-                                                            className={clsx(
-                                                                "input input-bordered w-1/2",
-                                                                {
-                                                                    "input-error":
-                                                                        errors.rp_nipol,
-                                                                },
-                                                            )}
-                                                            type="number"
-                                                            placeholder={
-                                                                watch("rp_service") ===
-                                                                "Gendarmerie Nationale"
-                                                                    ? "NIGEND"
-                                                                    : "NIPOL"
-                                                            }
-                                                            {...register("rp_nipol", {
-                                                                required: true,
-                                                            })}
-                                                        />
-                                                    </div>
-                                                    <select
-                                                        className={clsx(
-                                                            "select select-bordered w-full",
-                                                            {
-                                                                "input-error":
-                                                                    errors.rp_grade,
-                                                            },
-                                                        )}
-                                                        {...register("rp_grade", {
-                                                            required: true,
-                                                            validate: (value) =>
-                                                                frontToGrades(value) !==
-                                                                "Aucun",
-                                                        })}
-                                                    >
-                                                        <option value="">Grade</option>
-                                                        {watch("rp_service") ===
-                                                        "Gendarmerie Nationale"
-                                                            ? gradeGendarmerie.map(
-                                                                  (grade) => (
-                                                                      <option
-                                                                          key={grade}
-                                                                          value={grade}
-                                                                      >
-                                                                          {grade}
-                                                                      </option>
-                                                                  ),
-                                                              )
-                                                            : watch("rp_service") ===
-                                                              "Police Nationale"
-                                                            ? gradePoliceNationale.map(
-                                                                  (grade) => (
-                                                                      <option
-                                                                          key={grade}
-                                                                          value={grade}
-                                                                      >
-                                                                          {grade}
-                                                                      </option>
-                                                                  ),
-                                                              )
-                                                            : watch("rp_service") ===
-                                                              "Police Nationale"
-                                                            ? gradePoliceNationale.map(
-                                                                  (grade) => (
-                                                                      <option
-                                                                          key={grade}
-                                                                          value={grade}
-                                                                      >
-                                                                          {grade}
-                                                                      </option>
-                                                                  ),
-                                                              )
-                                                            : watch("rp_service") ===
-                                                              "Police Municipale"
-                                                            ? gradePoliceMunicipale.map(
-                                                                  (grade) => (
-                                                                      <option
-                                                                          key={grade}
-                                                                          value={grade}
-                                                                      >
-                                                                          {grade}
-                                                                      </option>
-                                                                  ),
-                                                              )
-                                                            : null}
-                                                    </select>
-                                                    <select
-                                                        className={clsx(
-                                                            "select select-bordered w-full",
-                                                            {
-                                                                "input-error":
-                                                                    errors.rp_affectation,
-                                                            },
-                                                        )}
-                                                        {...register("rp_affectation", {
-                                                            required: true,
-                                                            validate: (value) =>
-                                                                frontToAffectation(
-                                                                    value,
-                                                                ) !== "Aucun",
-                                                        })}
-                                                    >
-                                                        <option value="">
-                                                            Affectation
-                                                        </option>
-                                                        {affectationList.map(
-                                                            (affectation) => (
-                                                                <option
-                                                                    key={affectation}
-                                                                    value={affectation}
-                                                                >
-                                                                    {affectation}
-                                                                </option>
-                                                            ),
-                                                        )}
-                                                    </select>
-                                                    <button
-                                                        className={clsx(
-                                                            "btn btn-primary",
-                                                            {
-                                                                "btn-disabled":
-                                                                    createUserLoading,
-                                                            },
-                                                        )}
-                                                        type="submit"
-                                                    >
-                                                        {createUserLoading ? (
-                                                            <>
-                                                                <span className="loading loading-dots"></span>
-                                                                "Création..."
-                                                            </>
-                                                        ) : (
-                                                            "Créer"
-                                                        )}
-                                                    </button>
-                                                    <p className="italic text-center">
-                                                        Par défaut le mot de passe d'un
-                                                        nouveau compte est : "temporaire"
-                                                    </p>
-                                                    {createUserError && (
-                                                        <div className="text-error mt-2  text-center">
-                                                            {createUserError}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </form>
-                                        </div>
-
-                                        <form method="dialog" className="modal-backdrop">
-                                            <button>close</button>
-                                        </form>
-                                    </dialog>
                                 </div>
                             </>
                         )}

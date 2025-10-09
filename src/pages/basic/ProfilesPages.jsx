@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, NavLink } from "react-router-dom";
 
 // LOCAL
 import { useAuthStore } from "../../stores/authStore";
@@ -11,6 +11,7 @@ import AuthCheck from "../../components/AuthCheck";
 import DefaultHeader from "../../components/Header";
 import LoadingComponent from "../../components/LoadingComponent";
 import formatName from "../../tools/formatName";
+import RHFDateText from "../../components/RHFDateText.jsx";
 import { privilegesToFront } from "../../tools/privilegesTranslate";
 import { gradesToFront } from "../../tools/gradesTranslate";
 import { qualificationToFront } from "../../tools/qualificationTranslate";
@@ -37,6 +38,27 @@ function ProfilePage() {
     const [pwdError, setPwdError] = useState("");
     const [pwdSuccess, setPwdSuccess] = useState("");
     const [showPwd, setShowPwd] = useState(false);
+
+    // Formulaire de complétion d'inscription
+    const {
+        register: registerComplete,
+        handleSubmit: handleCompleteSubmit,
+        control: controlComplete,
+        formState: { errors: errorsComplete, isSubmitting: isSubmittingComplete },
+    } = useForm({
+        defaultValues: {
+            first_name: "",
+            last_name: "",
+            email: "",
+            rp_birthdate: "",
+            rp_gender: "",
+            accepted_cgu: false,
+            accepted_privacy: false,
+        },
+    });
+    const [completeError, setCompleteError] = useState("");
+    const [completeSuccess, setCompleteSuccess] = useState("");
+    const [completeLocked, setCompleteLocked] = useState(false);
 
     const onSubmitPassword = async (data) => {
         if (!token) {
@@ -76,6 +98,40 @@ function ProfilePage() {
             }
         } finally {
             setPwdLoading(false);
+        }
+    };
+
+    const onSubmitComplete = async (data) => {
+        if (!token) {
+            setCompleteError("Non authentifié");
+            return;
+        }
+        setCompleteError("");
+        setCompleteSuccess("");
+        try {
+            const payload = {
+                first_name: (data.first_name || "").trim().toLowerCase(),
+                last_name: (data.last_name || "").trim().toLowerCase(),
+                email: (data.email || "").trim().toLowerCase(),
+                rp_birthdate: data.rp_birthdate,
+                rp_gender: data.rp_gender,
+                accepted_cgu: !!data.accepted_cgu,
+                accepted_privacy: !!data.accepted_privacy,
+            };
+            await axios.post(`${API}/connected/user/inscription_complete/`, payload, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            setCompleteSuccess("Inscription complétée. En attente de validation.");
+            setCompleteLocked(true);
+            // Optionnel: fermer automatiquement après un court délai
+            await useAuthStore.getState().ensureSession();
+            setTimeout(() => {
+                document.getElementById("complete_inscription_modal")?.close();
+            }, 1000);
+        } catch (e) {
+            console.error(e);
+            const msg = e?.response?.data?.detail || "Erreur lors de l'envoi";
+            setCompleteError(msg);
         }
     };
 
@@ -225,6 +281,29 @@ function ProfilePage() {
                                             Actions
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
+                                            {user.inscription_status == "pending" &&
+                                                user.first_name == "inconnu" &&
+                                                !completeLocked && (
+                                                    <button
+                                                        className="btn btn-success col-span-2"
+                                                        onClick={() =>
+                                                            document
+                                                                .getElementById(
+                                                                    "complete_inscription_modal",
+                                                                )
+                                                                ?.showModal()
+                                                        }
+                                                    >
+                                                        Compléter mon inscription
+                                                    </button>
+                                                )}
+                                            {user.inscription_status == "pending" &&
+                                                user.first_name != "inconnu" && (
+                                                    <span className="col-span-2 w-full bg-success/10 border border-success/40 rounded-xl p-3 font-semibold text-sm text-center">
+                                                        Votre inscription est en cours de
+                                                        traitement
+                                                    </span>
+                                                )}
                                             <a
                                                 className="btn btn-primary"
                                                 href="https://discord.com/channels/541620491161436160/1012092654433095741"
@@ -486,6 +565,234 @@ function ProfilePage() {
                                                     </button>
                                                 </div>
                                             </form>
+                                        </dialog>
+                                        <dialog
+                                            id="complete_inscription_modal"
+                                            className="modal"
+                                        >
+                                            <div className="modal-box max-w-xl">
+                                                <h3 className="font-bold text-lg text-center">
+                                                    Compléter mon inscription
+                                                </h3>
+                                                <p className="text-center italic mb-3">
+                                                    Renseignez vos informations et
+                                                    acceptez les conditions pour finaliser
+                                                    votre inscription.
+                                                </p>
+
+                                                {completeError && (
+                                                    <div className="alert alert-error mb-3">
+                                                        <span>{completeError}</span>
+                                                    </div>
+                                                )}
+                                                {completeSuccess && (
+                                                    <div className="alert alert-success mb-3">
+                                                        <span>{completeSuccess}</span>
+                                                    </div>
+                                                )}
+                                                <h3 className="font-bold">
+                                                    Informations Réelles
+                                                </h3>
+                                                <form
+                                                    onSubmit={handleCompleteSubmit(
+                                                        onSubmitComplete,
+                                                    )}
+                                                    className="flex flex-col gap-3"
+                                                >
+                                                    <div className="flex gap-2">
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Prénom"
+                                                            className={clsx(
+                                                                "input input-bordered w-1/2",
+                                                                {
+                                                                    "input-error":
+                                                                        errorsComplete.first_name,
+                                                                },
+                                                            )}
+                                                            {...registerComplete(
+                                                                "first_name",
+                                                                { required: true },
+                                                            )}
+                                                            disabled={completeLocked}
+                                                        />
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Nom"
+                                                            className={clsx(
+                                                                "input input-bordered w-1/2",
+                                                                {
+                                                                    "input-error":
+                                                                        errorsComplete.last_name,
+                                                                },
+                                                            )}
+                                                            {...registerComplete(
+                                                                "last_name",
+                                                                { required: true },
+                                                            )}
+                                                            disabled={completeLocked}
+                                                        />
+                                                    </div>
+                                                    <input
+                                                        type="email"
+                                                        placeholder="Email"
+                                                        className={clsx(
+                                                            "input input-bordered w-full",
+                                                            {
+                                                                "input-error":
+                                                                    errorsComplete.email,
+                                                            },
+                                                        )}
+                                                        {...registerComplete("email", {
+                                                            required: true,
+                                                            pattern:
+                                                                /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                                        })}
+                                                        disabled={completeLocked}
+                                                    />
+                                                    <h3 className="font-bold">
+                                                        Informations RP
+                                                    </h3>
+                                                    <div className="flex gap-2">
+                                                        <div className="w-1/2">
+                                                            <RHFDateText
+                                                                control={controlComplete}
+                                                                name="rp_birthdate"
+                                                                placeholder="Naissance (JJ/MM/AAAA)"
+                                                                className="input input-bordered w-full"
+                                                                rules={{ required: true }}
+                                                                disabled={completeLocked}
+                                                            />
+                                                        </div>
+                                                        <select
+                                                            className={clsx(
+                                                                "select select-bordered w-1/2",
+                                                                {
+                                                                    "select-error":
+                                                                        errorsComplete.rp_gender,
+                                                                },
+                                                            )}
+                                                            {...registerComplete(
+                                                                "rp_gender",
+                                                                { required: true },
+                                                            )}
+                                                            disabled={completeLocked}
+                                                        >
+                                                            <option value="">Sexe</option>
+                                                            <option value="male">
+                                                                Homme
+                                                            </option>
+                                                            <option value="female">
+                                                                Femme
+                                                            </option>
+                                                        </select>
+                                                    </div>
+                                                    <h3 className="font-bold">
+                                                        Informations Légales
+                                                    </h3>
+                                                    <label className="label cursor-pointer gap-2">
+                                                        <input
+                                                            type="checkbox"
+                                                            className={clsx("checkbox", {
+                                                                "checkbox-error":
+                                                                    errorsComplete.accepted_cgu,
+                                                            })}
+                                                            {...registerComplete(
+                                                                "accepted_cgu",
+                                                                { required: true },
+                                                            )}
+                                                            disabled={completeLocked}
+                                                        />
+                                                        <span className="label-text text-sm">
+                                                            J'accepte les{" "}
+                                                            <NavLink
+                                                                to="/conditions"
+                                                                className="link"
+                                                            >
+                                                                Conditions Générales
+                                                                d'Utilisation
+                                                            </NavLink>
+                                                        </span>
+                                                    </label>
+                                                    <label className="label cursor-pointer gap-2">
+                                                        <input
+                                                            type="checkbox"
+                                                            className={clsx("checkbox", {
+                                                                "checkbox-error":
+                                                                    errorsComplete.accepted_privacy,
+                                                            })}
+                                                            {...registerComplete(
+                                                                "accepted_privacy",
+                                                                { required: true },
+                                                            )}
+                                                            disabled={completeLocked}
+                                                        />
+                                                        <span className="label-text text-sm">
+                                                            J'accepte la{" "}
+                                                            <NavLink
+                                                                to="/conditions"
+                                                                className="link"
+                                                            >
+                                                                Politique de
+                                                                Confidentialité
+                                                            </NavLink>
+                                                        </span>
+                                                    </label>
+                                                    <span className="text-xs italic text-center">
+                                                        Attention, vérifier la véracité
+                                                        des informations fournies. <br />
+                                                        Celle-ci ne pouront être modifiées
+                                                        sans l'intervention d'un
+                                                        administrateur.
+                                                    </span>
+
+                                                    <div className="modal-action justify-between mt-2">
+                                                        <button
+                                                            type="submit"
+                                                            className={clsx(
+                                                                "btn btn-primary",
+                                                                {
+                                                                    "btn-disabled":
+                                                                        isSubmittingComplete ||
+                                                                        completeLocked,
+                                                                },
+                                                            )}
+                                                        >
+                                                            {isSubmittingComplete ? (
+                                                                <>
+                                                                    <span className="loading loading-dots mr-2" />
+                                                                    Envoi…
+                                                                </>
+                                                            ) : (
+                                                                "Envoyer"
+                                                            )}
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            className="btn"
+                                                            onClick={() =>
+                                                                document
+                                                                    .getElementById(
+                                                                        "complete_inscription_modal",
+                                                                    )
+                                                                    ?.close()
+                                                            }
+                                                        >
+                                                            Fermer
+                                                        </button>
+                                                    </div>
+                                                </form>
+
+                                                <form
+                                                    method="dialog"
+                                                    className="modal-backdrop"
+                                                >
+                                                    <button
+                                                        className="hidden"
+                                                        aria-hidden="true"
+                                                    />
+                                                </form>
+                                            </div>
                                         </dialog>
                                     </div>
                                 </div>

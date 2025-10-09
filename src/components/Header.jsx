@@ -13,10 +13,17 @@ function DefaultHeader() {
         navigate("/login");
     };
 
-    const PageMenuLink = ({ name, path, adminOnly }) => {
+    const PageMenuLink = ({ name, path, adminOnly, validOnly }) => {
         const accesGranted = ["admin", "owner"];
         const isGranted = accesGranted.includes(user?.privileges);
         if (adminOnly && !isGranted) return null;
+
+        if (validOnly && user?.inscription_status !== "valid")
+            return (
+                <span className="btn btn-disabled w-full text-center mb-1 cursor-not-allowed">
+                    {name}
+                </span>
+            );
 
         return (
             <NavLink
@@ -35,8 +42,8 @@ function DefaultHeader() {
     };
 
     return (
-        <header className="w-full py-4 px-6 bg-base-300 grid grid-cols-[auto_1fr_auto] items-center gap-4 sticky top-0 left-0 z-50">
-            <nav className="flex gap-4 bg-transparent border border-base-100 px-3 py-1.5 rounded-2xl">
+        <header className="w-full py-4 px-6 bg-base-300 grid grid-cols-[1fr_auto_1fr] items-center gap-4 sticky top-0 left-0 z-50">
+            <nav className="flex gap-4 bg-transparent border border-base-100 px-3 py-1.5 rounded-2xl w-fit h-fit">
                 <div className="dropdown dropdown-start">
                     <div
                         tabIndex={0}
@@ -50,13 +57,13 @@ function DefaultHeader() {
                         className="menu menu-md dropdown-content bg-base-200 border border-base-200 rounded-box z-1 mt-3 w-52 p-2 shadow"
                     >
                         <PageMenuLink name="Accueil" path="/home" />
-                        <PageMenuLink name="NEOFIC" path="/neofic/accueil" />
+                        <PageMenuLink name="NEOFIC" path="/neofic/accueil" validOnly />
                         <PageMenuLink name="Admin" path="/admin" adminOnly />
                     </ul>
                 </div>
             </nav>
             <h1 className="text-2xl font-bold justify-self-center text-center select-none">
-                Neogend
+                NEO-CFS
             </h1>
 
             <div className="flex items-center gap-4 justify-self-end">

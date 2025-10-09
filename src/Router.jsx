@@ -11,7 +11,6 @@ import VehiculeRecherche from "./pages/neofic/VehiculeRecherche.jsx";
 import ConditionsGenerales from "./pages/utils/ConditionsGenerales.jsx";
 
 // Pages admin
-import AdminUserPage from "./pages/admin/AdminOnlyPage.jsx";
 import AdminProfilePage from "./pages/admin/AdminProfilesPage.jsx";
 import AdminHomePage from "./pages/admin/AdminHomePage.jsx";
 import ProfilePage from "./pages/basic/ProfilesPages.jsx";
@@ -24,12 +23,14 @@ import AdminSivPage from "./pages/admin/AdminSivPage.jsx";
 // Utilitaires
 import UnfindPage from "./pages/utils/UnfindPage.jsx";
 import Footer from "./components/Footer.jsx";
+import ScrollToTop from "./components/ScrollToTop.jsx";
 
 const router = createBrowserRouter([
     {
         path: "/",
         element: (
             <div className="min-h-screen bg-base-300 flex flex-col">
+                <ScrollToTop behavior="auto" />
                 <main className="flex-1 flex flex-col">
                     <Outlet />
                 </main>

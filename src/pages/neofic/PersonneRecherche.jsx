@@ -769,7 +769,9 @@ function PersonneRecherche() {
                     <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
                         <div className="border border-base-content/10 rounded-xl p-3">
                             <div className="text-base-content/60">Numéro de titre</div>
-                            <div className="font-medium">{fmt(fnpc?.numero_titre)}</div>
+                            <div className="font-medium">
+                                {fmt(fnpc?.numero_titre).toUpperCase()}
+                            </div>
                         </div>
                         <div className="border border-base-content/10 rounded-xl p-3">
                             <div className="text-base-content/60">

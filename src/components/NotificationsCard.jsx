@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import API from "../global/API";
@@ -9,6 +9,11 @@ function NotificationsCard({ notification, onMarked }) {
     const token = useAuthStore((s) => s.token);
     const [localRead, setLocalRead] = useState(!!notification?.is_read);
     const [busy, setBusy] = useState(false);
+
+    // Synchronise l'état local si le parent met à jour notification.is_read
+    useEffect(() => {
+        setLocalRead(!!notification?.is_read);
+    }, [notification?.is_read]);
 
     if (!notification) return null;
 
@@ -85,7 +90,7 @@ function NotificationsCard({ notification, onMarked }) {
                         </time>
                     </div>
 
-                    <p className="mt-1 text-xs text-gray-600 line-clamp-3 whitespace-pre-line">
+                    <p className="mt-1 text-xs text-gray-600 line-clamp-none md:line-clamp-4 hover:line-clamp-none whitespace-pre-line">
                         {notification?.message ?? ""}
                     </p>
 

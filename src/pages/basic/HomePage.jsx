@@ -196,7 +196,9 @@ function HomePage() {
                 headers: { Authorization: `Bearer ${token}` },
             },
         );
-        setNotifList((prev) => prev.map((notif) => ({ ...notif, is_read: true })));
+        setNotifList((prev) =>
+            seeAllNotifs ? prev.map((n) => ({ ...n, is_read: true })) : [],
+        );
     };
 
     return (
@@ -318,7 +320,21 @@ function HomePage() {
                         >
                             {notifList.length > 0 ? (
                                 notifList.map((n) => (
-                                    <NotificationsCard key={n.id} notification={n} />
+                                    <NotificationsCard
+                                        key={`${n.id}-${n.is_read ? "1" : "0"}`}
+                                        notification={n}
+                                        onMarked={(id) =>
+                                            setNotifList((prev) =>
+                                                seeAllNotifs
+                                                    ? prev.map((x) =>
+                                                          x.id === id
+                                                              ? { ...x, is_read: true }
+                                                              : x,
+                                                      )
+                                                    : prev.filter((x) => x.id !== id),
+                                            )
+                                        }
+                                    />
                                 ))
                             ) : (
                                 <div className="text-center text-base-content/50">

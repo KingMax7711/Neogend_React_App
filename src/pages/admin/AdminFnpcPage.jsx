@@ -641,7 +641,7 @@ function AdminFnpcPage() {
 
         const out = {
             neph: n(raw.neph),
-            numero_titre: n(raw.numero_titre),
+            numero_titre: s(raw.numero_titre),
             date_delivrance: d(raw.date_delivrance),
             prefecture_delivrance: s(raw.prefecture_delivrance),
             date_expiration: d(raw.date_expiration),
@@ -848,7 +848,7 @@ function AdminFnpcPage() {
                                         </span>
                                     </label>
                                     <input
-                                        type="number"
+                                        type="text"
                                         className={clsx("input input-bordered", {
                                             "input-error": errors.numero_titre,
                                         })}

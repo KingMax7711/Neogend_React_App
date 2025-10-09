@@ -1,9 +1,9 @@
 import React from "react";
 
 function Footer({ className = "" }) {
-    const currentVersion =
-        import.meta?.env?.VITE_REACT_APP_VERSION &&
-        String(import.meta.env.VITE_REACT_APP_VERSION).trim();
+    const currentVersion = import.meta?.env?.VITE_REACT_APP_VERSION
+        ? String(import.meta.env.VITE_REACT_APP_VERSION).trim()
+        : "1.0.0";
 
     return (
         <footer className={`mt-auto ${className}`}>
