@@ -59,6 +59,7 @@ function AdminHomePage() {
     const [createUserError, setCreateUserError] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
     const [currentTempPassword, setCurrentTempPassword] = useState("");
+    const [reloadTick, setReloadTick] = useState(0);
     const firstLoadRef = useRef(true);
     const prevHashRef = useRef("");
     const navigate = useNavigate();
@@ -170,7 +171,8 @@ function AdminHomePage() {
                 if (password_modal) {
                     password_modal.showModal();
                 }
-
+                // Recharger la liste des utilisateurs
+                setReloadTick((t) => t + 1);
                 // Réinitialiser le formulaire ou effectuer d'autres actions
             })
             .catch((err) => {
@@ -263,7 +265,7 @@ function AdminHomePage() {
             document.removeEventListener("visibilitychange", onVisibility);
         };
         // NOTE: on NE met PAS usersList en dépendance pour éviter des fetchs en boucle.
-    }, [token, user]);
+    }, [token, user, reloadTick]);
 
     const TableRow = ({ u }) => (
         <tr key={u.id}>

@@ -129,7 +129,7 @@ select:-webkit-autofill:hover {
 }
 
 @theme {
-    --breakpoint-xxl: 1625px;
+    --breakpoint-xxl: 1700px;
 }
 
 /* Harmonise la couleur du placeholder pour tous les inputs */
