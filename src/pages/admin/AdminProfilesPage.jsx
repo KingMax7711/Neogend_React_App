@@ -46,6 +46,7 @@ function AdminProfilePage() {
     const [permError, setPermError] = useState("");
     const [permSuccess, setPermSuccess] = useState("");
     const navigate = useNavigate();
+    const [refreshTick, setRefreshTick] = useState(0); // pour forcer rafraîchissement
 
     const handleResetPassword = async () => {
         if (!id || !token) return;
@@ -112,6 +113,31 @@ function AdminProfilePage() {
         }
     };
 
+    const handleSuspendAccount = async () => {
+        if (!id || !token) return;
+        if (!checkUser || checkUser.inscription_status === "suspended") {
+            await axios.post(`${API}/admin/user/reactivate/${id}`, null, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            document.getElementById("confirm_suspend_modal")?.close();
+            setRefreshTick((t) => t + 1); // force refresh
+        } else {
+            await axios.post(`${API}/admin/user/suspend/${id}`, null, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            document.getElementById("confirm_suspend_modal")?.close();
+            setRefreshTick((t) => t + 1); // force refresh
+        }
+    };
+
+    const handleResetInscription = async () => {
+        if (!id || !token) return;
+        await axios.post(`${API}/admin/user/reset_inscription/${id}`, null, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        setRefreshTick((t) => t + 1); // force refresh
+    };
+
     useEffect(() => {
         if (!id || !token) return;
         setError(null);
@@ -129,7 +155,7 @@ function AdminProfilePage() {
         };
 
         fetchUserData();
-    }, [id, token]);
+    }, [id, token, refreshTick]);
 
     // Suivi de la valeur de privilège affichée
     useEffect(() => {
@@ -568,7 +594,9 @@ function AdminProfilePage() {
                                                             "pending",
                                                         "badge-error":
                                                             checkUser.inscription_status ===
-                                                            "denied",
+                                                                "denied" ||
+                                                            checkUser.inscription_status ===
+                                                                "suspended",
                                                     })}
                                                 >
                                                     {checkUser.inscription_status ===
@@ -577,6 +605,9 @@ function AdminProfilePage() {
                                                         : checkUser.inscription_status ===
                                                           "pending"
                                                         ? "En attente"
+                                                        : checkUser.inscription_status ===
+                                                          "suspended"
+                                                        ? "Suspendu"
                                                         : "Refusé"}
                                                 </span>
                                             </div>
@@ -606,6 +637,38 @@ function AdminProfilePage() {
                                                         checkUser.privileges,
                                                     )}
                                                 </span>
+                                            </div>
+                                        </div>
+                                        {/* CGU et RPGD */}
+                                        <div className="grid grid-cols-[10rem,1fr] items-center">
+                                            <div className="text-xs opacity-60">
+                                                CGU acceptées
+                                            </div>
+                                            {console.log(checkUser)}
+                                            <div>
+                                                {checkUser.accepted_cgu ? (
+                                                    <span className="badge badge-success">
+                                                        Oui
+                                                    </span>
+                                                ) : (
+                                                    <span className="badge badge-error">
+                                                        Non
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div className="text-xs opacity-60">
+                                                RGPD acceptées
+                                            </div>
+                                            <div>
+                                                {checkUser.accepted_privacy ? (
+                                                    <span className="badge badge-success">
+                                                        Oui
+                                                    </span>
+                                                ) : (
+                                                    <span className="badge badge-error">
+                                                        Non
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -824,6 +887,14 @@ function AdminProfilePage() {
                                         <div className="bg-success/10 border border-success/20 p-3 rounded">
                                             <p>Inscription validée.</p>
                                         </div>
+                                    ) : checkUser.inscription_status === "suspended" ? (
+                                        <div className="bg-warning/10 border border-warning/20 p-3 rounded">
+                                            <p>
+                                                Compte Suspendu. La gestion des
+                                                inscriptions est temporairement
+                                                désactivée.
+                                            </p>
+                                        </div>
                                     ) : (
                                         <div className="bg-error/10 border border-error/20 p-3 rounded">
                                             <p>Inscription refusée.</p>
@@ -874,10 +945,29 @@ function AdminProfilePage() {
                                         </button>
 
                                         <button
-                                            className="btn btn-error btn-outline btn-disabled"
-                                            disabled
+                                            className={
+                                                "btn btn-outline" +
+                                                (checkUser.inscription_status ===
+                                                "suspended"
+                                                    ? " btn-success"
+                                                    : " btn-error")
+                                            }
+                                            onClick={() =>
+                                                document
+                                                    .getElementById(
+                                                        "confirm_suspend_modal",
+                                                    )
+                                                    ?.showModal()
+                                            }
+                                            disabled={
+                                                !dicPermModify[
+                                                    user?.privileges
+                                                ]?.includes(checkUser.privileges)
+                                            }
                                         >
-                                            Suspendre l'accès (bientôt)
+                                            {checkUser.inscription_status === "suspended"
+                                                ? "Reactiver le compte"
+                                                : "Suspendre l'accès"}
                                         </button>
                                         <button
                                             className="btn btn-error btn-outline"
@@ -895,6 +985,12 @@ function AdminProfilePage() {
                                             }
                                         >
                                             Supprimer le compte
+                                        </button>
+                                        <button
+                                            onClick={handleResetInscription}
+                                            className="btn btn-info col-span-2"
+                                        >
+                                            Réinitialiser l'inscription
                                         </button>
                                     </div>
 
@@ -969,7 +1065,60 @@ function AdminProfilePage() {
                                             </div>
                                         </form>
                                     </dialog>
-
+                                    <dialog id="confirm_suspend_modal" className="modal">
+                                        <form method="dialog" className="modal-box">
+                                            <h3 className="font-bold text-lg text-center">
+                                                {checkUser.inscription_status ===
+                                                "suspended"
+                                                    ? "Confirmer la réactivation"
+                                                    : "Confirmer la suspension"}
+                                            </h3>
+                                            <p className="italic text-center">
+                                                {checkUser.inscription_status ===
+                                                "suspended"
+                                                    ? "Cette action réactivera le compte de "
+                                                    : "Cette action suspendra le compte de "}
+                                                {checkUser.first_name
+                                                    .slice(0, 1)
+                                                    .toUpperCase() +
+                                                    checkUser.first_name.slice(1) +
+                                                    " " +
+                                                    checkUser.last_name
+                                                        .slice(0, 1)
+                                                        .toUpperCase() +
+                                                    checkUser.last_name.slice(1)}
+                                                .
+                                            </p>
+                                            <div className="modal-action justify-between">
+                                                <button
+                                                    type="button"
+                                                    className={
+                                                        "btn" +
+                                                        (checkUser.inscription_status ===
+                                                        "suspended"
+                                                            ? " btn-success"
+                                                            : " btn-error")
+                                                    }
+                                                    onClick={handleSuspendAccount}
+                                                >
+                                                    Confirmer
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className="btn"
+                                                    onClick={() =>
+                                                        document
+                                                            .getElementById(
+                                                                "confirm_suspend_modal",
+                                                            )
+                                                            ?.close()
+                                                    }
+                                                >
+                                                    Annuler
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </dialog>
                                     <dialog id="reset_password_modal" className="modal">
                                         <form method="dialog" className="modal-box">
                                             <h3 className="font-bold text-lg text-center">

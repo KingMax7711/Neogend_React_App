@@ -73,6 +73,8 @@ function LoginPage() {
             if (error.response && error.response.status === 401) {
                 setErrorMsg(error.response.data.detail); // message de l’API
                 setConnectionStatus(false);
+            } else if (error.response && error.response.status === 403) {
+                setErrorMsg(error.response.data.detail); // message de l’API
             } else {
                 setErrorMsg("Une erreur est survenue.");
             }
