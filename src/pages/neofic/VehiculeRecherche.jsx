@@ -361,6 +361,7 @@ function VehiculeRecherche() {
         handleSubmit,
         watch,
         reset,
+        setValue,
         formState: { errors, isSubmitting },
     } = useForm({
         defaultValues: { immatriculation: "" },
@@ -368,6 +369,38 @@ function VehiculeRecherche() {
     });
 
     const todayStr = new Date().toISOString().split("T")[0];
+
+    // Formatage automatique au format SIV pendant la saisie: AA-123-AA
+    const formatSivImmat = (value) => {
+        const cleaned = (value || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+        if (!cleaned) return "";
+        // Si ça commence par des lettres, on applique le masque SIV
+        if (/^[A-Z]/.test(cleaned)) {
+            const part1 = (cleaned.match(/^[A-Z]{0,2}/) || [""])[0];
+            const rest1 = cleaned.slice(part1.length);
+            const part2 = (rest1.match(/^\d{0,3}/) || [""])[0];
+            const rest2 = rest1.slice(part2.length);
+            const part3 = (rest2.match(/^[A-Z]{0,2}/) || [""])[0];
+            let out = part1;
+            if (part2.length) out += (out ? "-" : "") + part2;
+            if (part3.length) out += (out ? "-" : "") + part3;
+            return out;
+        }
+        // Sinon on n'impose pas de format particulier (ex: anciens formats), juste uppercase sans caractères spéciaux
+        return cleaned;
+    };
+
+    const handleImmatInput = (e) => {
+        const formatted = formatSivImmat(e.target.value);
+        if (formatted !== e.target.value) {
+            // met à jour la valeur affichée et l'état RHF
+            e.target.value = formatted;
+            setValue("immatriculation", formatted, {
+                shouldValidate: true,
+                shouldDirty: true,
+            });
+        }
+    };
 
     const handleResetSearch = () => {
         reset();
@@ -848,11 +881,14 @@ function VehiculeRecherche() {
                                         }`}
                                         aria-invalid={!!errors.immatriculation}
                                         placeholder="Ex: AB-123-CD"
+                                        title="Format requis: AA-123-AA"
+                                        onInput={handleImmatInput}
                                         {...register("immatriculation", {
                                             required: "L'immatriculation est requise",
                                             pattern: {
-                                                value: /^[a-zA-Z0-9\- ]+$/i,
-                                                message: "Caractères non valides",
+                                                value: /^[A-Z]{2}-\d{3}-[A-Z]{2}$/,
+                                                message:
+                                                    "Format invalide. Utilisez AA-123-AA.",
                                             },
                                         })}
                                     />
