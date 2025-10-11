@@ -988,7 +988,12 @@ function AdminProfilePage() {
                                         </button>
                                         <button
                                             onClick={handleResetInscription}
-                                            className="btn btn-info col-span-2"
+                                            className="btn btn-info md:col-span-2"
+                                            disabled={
+                                                !dicPermModify[
+                                                    user?.privileges
+                                                ]?.includes(checkUser.privileges)
+                                            }
                                         >
                                             Réinitialiser l'inscription
                                         </button>
