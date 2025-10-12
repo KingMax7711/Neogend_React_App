@@ -603,10 +603,10 @@ function AdminFprPage() {
             motif_enregistrement: s(raw.motif_enregistrement),
             autorite_enregistrement: s(raw.autorite_enregistrement),
             lieu_faits: s(raw.lieu_faits),
-            details: s(raw.details),
+            details: raw.details, // On garde volontairement le formatage libre
             dangerosite: s(raw.dangerosite),
-            signes_distinctifs: s(raw.signes_distinctifs),
-            conduite: s(raw.conduite),
+            signes_distinctifs: raw.signes_distinctifs, // On garde volontairement le formatage libre
+            conduite: raw.conduite, // On garde volontairement le formatage libre
 
             prop_id: n(raw.prop_id),
             neph: s(raw.neph),

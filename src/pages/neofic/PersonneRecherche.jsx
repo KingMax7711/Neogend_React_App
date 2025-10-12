@@ -1162,10 +1162,7 @@ function PersonneRecherche() {
                         </div>
                         <div className="border border-base-content/10 rounded-xl p-3 lg:col-span-2">
                             <div className="text-base-content/60">Conduite</div>
-                            <div className="font-medium">
-                                {fmt(fpr?.conduite).slice(0, 1).toUpperCase() +
-                                    fmt(fpr?.conduite).slice(1).toLowerCase()}
-                            </div>
+                            <div className="font-medium">{fpr?.conduite || "—"}</div>
                         </div>
                     </div>
 
