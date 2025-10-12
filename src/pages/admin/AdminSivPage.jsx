@@ -377,6 +377,37 @@ function AdminSivPage() {
         },
     });
 
+    // Formatage automatique au format SIV pendant la saisie: AA-123-AA
+    const formatSivImmat = (value) => {
+        const cleaned = (value || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+        if (!cleaned) return "";
+        // Si ça commence par une lettre, applique le masque SIV
+        if (/^[A-Z]/.test(cleaned)) {
+            const part1 = (cleaned.match(/^[A-Z]{0,2}/) || [""])[0];
+            const rest1 = cleaned.slice(part1.length);
+            const part2 = (rest1.match(/^\d{0,3}/) || [""])[0];
+            const rest2 = rest1.slice(part2.length);
+            const part3 = (rest2.match(/^[A-Z]{0,2}/) || [""])[0];
+            let out = part1;
+            if (part2.length) out += (out ? "-" : "") + part2;
+            if (part3.length) out += (out ? "-" : "") + part3;
+            return out;
+        }
+        // Sinon, ne pas imposer un masque strict (compatibilité anciens formats)
+        return cleaned;
+    };
+
+    const handleImmatInput = (e) => {
+        const formatted = formatSivImmat(e.target.value);
+        if (formatted !== e.target.value) {
+            e.target.value = formatted;
+            setValue("ci_numero_immatriculation", formatted, {
+                shouldValidate: true,
+                shouldDirty: true,
+            });
+        }
+    };
+
     // Helpers dates
     const addYears = (dateStr, years) => {
         if (!dateStr) return "";
@@ -450,7 +481,9 @@ function AdminSivPage() {
             prop_id: selectedSiv.prop_id ?? "",
             co_prop_id: selectedSiv.co_prop_id ?? "",
             ci_etat_administratif: selectedSiv.ci_etat_administratif ?? "",
-            ci_numero_immatriculation: selectedSiv.ci_numero_immatriculation ?? "",
+            ci_numero_immatriculation: formatSivImmat(
+                selectedSiv.ci_numero_immatriculation ?? "",
+            ),
             ci_date_premiere_circulation: selectedSiv.ci_date_premiere_circulation ?? "",
             ci_date_certificat: selectedSiv.ci_date_certificat ?? "",
             vl_etat_administratif: selectedSiv.vl_etat_administratif ?? "",
@@ -743,8 +776,16 @@ function AdminSivPage() {
                                                 errors.ci_numero_immatriculation,
                                         })}
                                         aria-invalid={!!errors.ci_numero_immatriculation}
+                                        placeholder="Ex: AB-123-CD"
+                                        title="Format requis: AA-123-AA"
+                                        onInput={handleImmatInput}
                                         {...register("ci_numero_immatriculation", {
-                                            required: true,
+                                            required: "L'immatriculation est requise",
+                                            pattern: {
+                                                value: /^[A-Z]{2}-\d{3}-[A-Z]{2}$/,
+                                                message:
+                                                    "Format invalide. Utilisez AA-123-AA (lettres en majuscules).",
+                                            },
                                         })}
                                     />
                                 </div>

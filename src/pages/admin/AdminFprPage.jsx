@@ -376,11 +376,10 @@ function AdminFprPage() {
                 <td>{ownerLabel}</td>
                 <td>{fmtName(fpr.exactitude)}</td>
                 <td>{fmtDate(fpr.date_enregistrement)}</td>
-                <td>{fmtName(fpr.motif_enregistrement)}</td>
-                <td>{fmt(fpr.autorite_enregistrement)}</td>
+                <td>{fmt(fpr.motif_enregistrement).toUpperCase()}</td>
+                <td>{fmtName(fpr.autorite_enregistrement)}</td>
                 <td>{fmt(fpr.lieu_faits).toUpperCase()}</td>
                 <td>{fmtName(fpr.dangerosite)}</td>
-                <td>{fmt(fpr.conduite)}</td>
                 <td>{fmt(fpr.neph)}</td>
                 <td>{fmt(fpr.num_fijait)}</td>
                 <td>
@@ -468,7 +467,7 @@ function AdminFprPage() {
 
                         <div className="opacity-70">Motif</div>
                         <div className="font-medium">
-                            {fmtName(fpr.motif_enregistrement)}
+                            {fmt(fpr.motif_enregistrement).toUpperCase()}
                         </div>
 
                         <div className="opacity-70">Autorité</div>
@@ -483,9 +482,6 @@ function AdminFprPage() {
 
                         <div className="opacity-70">Dangerosité</div>
                         <div className="font-medium">{fmtName(fpr.dangerosite)}</div>
-
-                        <div className="opacity-70">Conduite</div>
-                        <div className="font-medium">{fmt(fpr.conduite)}</div>
 
                         <div className="opacity-70">NEPH</div>
                         <div className="font-mono">{fmt(fpr.neph)}</div>
@@ -699,7 +695,6 @@ function AdminFprPage() {
                                                 <th>Autorité</th>
                                                 <th>Lieu</th>
                                                 <th>Dangerosité</th>
-                                                <th>Conduite</th>
                                                 <th>NEPH</th>
                                                 <th>N° FIJAIT</th>
                                                 <th>Sélectionner</th>

@@ -520,7 +520,7 @@ function AdminHomePage() {
                                 <h2 className="mb-2 text-center font-bold text-lg">
                                     Action de sécurité
                                 </h2>
-                                <div className="flex flex-col xxl:flex-row gap-4">
+                                <div className="flex flex-col xl:flex-row gap-4">
                                     <button
                                         className="btn btn-error btn-outline"
                                         onClick={() =>
@@ -740,7 +740,7 @@ function AdminHomePage() {
                             <p className="mb-4 text-center italic">
                                 Permet la consultation et la modification des fichiers
                             </p>
-                            <div className="grid grid-cols-1 xxl:grid-cols-2 gap-2">
+                            <div className="grid grid-cols-1 xl:grid-cols-2 gap-2">
                                 {filesList.map((fileName) => (
                                     <FileInspectGridCase
                                         key={fileName.name}

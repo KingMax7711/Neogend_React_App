@@ -168,9 +168,7 @@ function AdminPropioPage() {
                         ? dbDateToFront(prop.date_naissance)
                         : "N/A"}
                 </td>
-                <td>
-                    {prop.sexe != "" ? (prop.sexe == "male" ? "Homme" : "Femme") : "N/A"}
-                </td>
+                <td>{prop.sexe != "" ? (prop.sexe == "male" ? "H" : "F") : "N/A"}</td>
                 <td>
                     {prop.lieu_naissance != "" && prop.departement_naissance_numero != ""
                         ? formatName(prop.lieu_naissance) +
@@ -701,6 +699,7 @@ function AdminPropioPage() {
                                         <option value="chemin">Chemin</option>
                                         <option value="cours">Cours</option>
                                         <option value="impasse">Impasse</option>
+                                        <option value="lieu-dit">Lieu-Dit</option>
                                         <option value="place">Place</option>
                                         <option value="quai">Quai</option>
                                         <option value="route">Route</option>
