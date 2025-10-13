@@ -373,7 +373,7 @@ function PersonneRecherche() {
             try {
                 if (firstFprLoadRef.current) setLoading(true);
                 setError("");
-                const response = await axios.get(`${API}/fpr/read/`, {
+                const response = await axios.get(`${API}/public/fpr/read/`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 if (!cancelled) {

@@ -593,6 +593,10 @@ function ProfilePage() {
                                                 <h3 className="font-bold">
                                                     Informations Réelles
                                                 </h3>
+                                                <p className="text-sm italic pb-2.5">
+                                                    Entrez vos informations réelles telles
+                                                    que sur vos documents officiels.
+                                                </p>
                                                 <form
                                                     onSubmit={handleCompleteSubmit(
                                                         onSubmitComplete,
@@ -650,9 +654,16 @@ function ProfilePage() {
                                                         })}
                                                         disabled={completeLocked}
                                                     />
-                                                    <h3 className="font-bold">
-                                                        Informations RP
-                                                    </h3>
+                                                    <span className="divider-neutral divider"></span>
+                                                    <div className="pb-2.5">
+                                                        <h3 className="font-bold">
+                                                            Informations RP
+                                                        </h3>
+                                                        <p className="text-sm italic">
+                                                            Entrez les informations de
+                                                            votre personnage.
+                                                        </p>
+                                                    </div>
                                                     <div className="flex gap-2">
                                                         <div className="w-1/2">
                                                             <RHFDateText
@@ -687,9 +698,18 @@ function ProfilePage() {
                                                             </option>
                                                         </select>
                                                     </div>
-                                                    <h3 className="font-bold">
-                                                        Informations Légales
-                                                    </h3>
+                                                    <span className="divider-neutral divider"></span>
+                                                    <div className="pb-2.5">
+                                                        <h3 className="font-bold">
+                                                            Informations Légales
+                                                        </h3>
+                                                        <p className="text-sm italic">
+                                                            Ces informations sont
+                                                            nécessaires pour votre
+                                                            inscription au sein de la
+                                                            communauté.
+                                                        </p>
+                                                    </div>
                                                     <label className="label cursor-pointer gap-2">
                                                         <input
                                                             type="checkbox"

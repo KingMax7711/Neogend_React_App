@@ -102,6 +102,10 @@ function AdminHomePage() {
                 await axios.post(`${API}/notifications/create_all/`, payloadBase, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
+            } else if (data.target === "staff") {
+                await axios.post(`${API}/notifications/create_all_staff/`, payloadBase, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
             } else {
                 const userId = Number(data.user_id);
                 if (!userId) {
@@ -628,9 +632,20 @@ function AdminHomePage() {
                                                         Tous les utilisateurs
                                                     </span>
                                                 </label>
+                                                <label className="label cursor-pointer gap-2">
+                                                    <input
+                                                        type="radio"
+                                                        className="radio"
+                                                        value="staff"
+                                                        {...registerNotif("target")}
+                                                    />
+                                                    <span className="label-text">
+                                                        Tous les staffs
+                                                    </span>
+                                                </label>
                                             </div>
 
-                                            {watchNotif("target") !== "all" && (
+                                            {watchNotif("target") == "one" && (
                                                 <select
                                                     className={clsx(
                                                         "select select-bordered w-full",
@@ -641,8 +656,7 @@ function AdminHomePage() {
                                                     )}
                                                     {...registerNotif("user_id", {
                                                         required:
-                                                            watchNotif("target") !==
-                                                            "all",
+                                                            watchNotif("target") == "one",
                                                     })}
                                                 >
                                                     <option value="">

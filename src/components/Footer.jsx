@@ -9,7 +9,9 @@ function Footer({ className = "" }) {
         <footer className={`mt-auto ${className}`}>
             <div className="flex flex-col-reverse md:flex-row md:justify-between justify-center items-center text-sm italic">
                 <div className="flex w-fit">
-                    <p>&copy; {new Date().getFullYear()} Neogend. All rights reserved.</p>
+                    <p>
+                        &copy; {new Date().getFullYear()} Neogend. Tout droits réservés.
+                    </p>
                     <p className="ml-2">|</p>
                     <p className="ml-2">Version {currentVersion}</p>
                 </div>
