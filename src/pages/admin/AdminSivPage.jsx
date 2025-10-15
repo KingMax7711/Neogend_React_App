@@ -241,7 +241,7 @@ function AdminSivPage() {
                 <td>{fmt(siv.vl_couleur_dominante)}</td>
                 <td>{fmt(siv.tech_puissance_fiscale)}</td>
                 <td>{fmt(siv.ct_date_echeance)}</td>
-                <td>{fmt(siv.as_assureur)}</td>
+                <td className="hidden 3xl:table-cell">{fmt(siv.as_assureur)}</td>
                 <td>
                     <input
                         type="radio"
@@ -658,7 +658,9 @@ function AdminSivPage() {
                                                 <th>Couleur</th>
                                                 <th>Puiss. fiscale</th>
                                                 <th>CT Échéance</th>
-                                                <th>Assureur</th>
+                                                <th className="hidden 3xl:table-cell">
+                                                    Assureur
+                                                </th>
                                                 <th>Sélectionner</th>
                                                 <th>Actions</th>
                                             </tr>
@@ -699,7 +701,7 @@ function AdminSivPage() {
                         )}
 
                         <form onSubmit={handleSubmit(editSubmit)} className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 3xl:grid-cols-2 gap-3">
                                 {/* Propriétaires */}
                                 <div className="form-control">
                                     <label className="label">
@@ -799,6 +801,7 @@ function AdminSivPage() {
                                         control={control}
                                         name="ci_date_premiere_circulation"
                                         rules={{ required: true }}
+                                        className="input"
                                     />
                                 </div>
                                 <div className="form-control">
@@ -811,6 +814,7 @@ function AdminSivPage() {
                                         control={control}
                                         name="ci_date_certificat"
                                         rules={{ required: true }}
+                                        className="input"
                                     />
                                 </div>
                                 {/* Véhicule */}
@@ -1148,6 +1152,7 @@ function AdminSivPage() {
                                                 ctManuallyEditedRef.current = true;
                                             }
                                         }}
+                                        className="input"
                                     />
                                 </div>
                                 {/* Assurance */}
@@ -1172,6 +1177,7 @@ function AdminSivPage() {
                                     <RHFDateText
                                         control={control}
                                         name="as_date_contrat"
+                                        className="input"
                                     />
                                 </div>
                             </div>

@@ -129,6 +129,7 @@ select:-webkit-autofill:hover {
 }
 
 @theme {
+    --breakpoint-3xl: 1920px;
     --breakpoint-xxl: 2000px;
 }
 

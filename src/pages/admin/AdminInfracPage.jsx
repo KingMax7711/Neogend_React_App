@@ -367,16 +367,8 @@ function AdminInfracPage() {
                 <td>{infrac.classe + "ème Classe"}</td>
                 <td>{infrac.natinf ? infrac.natinf : "N/A"}</td>
                 <td>{"-" + infrac.points}</td>
-                <td>
-                    {infrac.statut == "paye"
-                        ? "Payé"
-                        : infrac.statut == "attente"
-                        ? "En attente"
-                        : infrac.statut == "impaye"
-                        ? "Impayé"
-                        : "Inconnu"}
-                </td>
-                <td>
+
+                <td className="hidden 3xl:table-cell">
                     {infrac.details != null ? (
                         infrac.details.length > 35 ? (
                             <span>{infrac.details.slice(0, 35)}...</span>
@@ -387,7 +379,7 @@ function AdminInfracPage() {
                         "Aucun détail"
                     )}
                 </td>
-                <td>{infrac.nipol}</td>
+                <td className="hidden 3xl:table-cell">{infrac.nipol}</td>
 
                 <td>
                     <input
@@ -688,9 +680,12 @@ function AdminInfracPage() {
                                                 <th className="">Classe</th>
                                                 <th className="">Natinf</th>
                                                 <th className="">Points</th>
-                                                <th className="">Statut</th>
-                                                <th className="">Détails</th>
-                                                <th className="">N° Agent</th>
+                                                <th className="hidden 3xl:table-cell">
+                                                    Détails
+                                                </th>
+                                                <th className="hidden 3xl:table-cell">
+                                                    N° Agent
+                                                </th>
                                                 <th className="">Sélectionner</th>
                                                 <th className="">Actions</th>
                                             </tr>
@@ -736,7 +731,7 @@ function AdminInfracPage() {
                         )}
 
                         <form onSubmit={handleSubmit(editSubmit)} className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 3xl:grid-cols-2 gap-3">
                                 <div className="form-control">
                                     <label className="label">
                                         <span className="label-text">NEPH</span>
@@ -790,7 +785,7 @@ function AdminInfracPage() {
                                     <RHFDateText
                                         control={control}
                                         name="date_infraction"
-                                        className="input input-bordered w-full"
+                                        className="input input-bordered"
                                         rules={{ required: true }}
                                     />
                                 </div>
@@ -872,13 +867,13 @@ function AdminInfracPage() {
                                         {...register("nipol", { required: true })}
                                     />
                                 </div>
-                                <div className="form-control grid md:col-span-2">
+                                <div className="form-control grid 3xl:col-span-2">
                                     <label className="label">
                                         <span className="label-text">Details</span>
                                     </label>
                                     <textarea
                                         className={clsx(
-                                            "textarea textarea-bordered w-full",
+                                            "textarea textarea-bordered 3xl:w-full",
                                             {
                                                 "input-error": errors.details,
                                             },

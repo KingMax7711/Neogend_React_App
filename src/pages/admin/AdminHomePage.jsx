@@ -33,7 +33,7 @@ const filesList = [
 
 function FileInspectGridCase({ fileName, fullName }) {
     return (
-        <div className="bg-base-100 p-6 rounded-3xl shadow-lg border border-primary max-w-80">
+        <div className="bg-base-100 p-6 rounded-3xl shadow-lg border border-primary w-full max-w-80 mx-auto">
             <div className="flex flex-col items-center xl:justify-between">
                 <span className="font-bold">{fileName.toUpperCase()}</span>
                 <div className="flex gap-1">
@@ -305,8 +305,7 @@ function AdminHomePage() {
                 )}{" "}
                 <span className="italic">{u.rp_nipol}</span>
             </td>
-
-            <td>{u.email}</td>
+            <td>{window.innerWidth >= 1920 ? u.email : u.email.slice(0, 10) + "..."}</td>
             <td>
                 <span
                     className={clsx("badge badge-md", {
@@ -499,7 +498,7 @@ function AdminHomePage() {
                 <DefaultHeader />
                 <div className="bg-base-200 p-6 rounded-3xl shadow-lg m-6 flex flex-col md:flex-row gap-8 h-fit w-fit mx-auto">
                     <div className="flex flex-col gap-4 justify-between md:justify-start items-center md:items-start">
-                        <div className="flex flex-col md:flex-row  justify-between w-full gap-4">
+                        <div className="flex flex-col 3xl:flex-row  justify-between w-full gap-4">
                             {/* Gestion des Notifications */}
                             <div className="flex flex-col bg-base-300 p-6 rounded-3xl shadow-lg gap-2">
                                 <h2 className="mb-1 text-center font-bold text-lg">
@@ -520,11 +519,11 @@ function AdminHomePage() {
                                 </button>
                             </div>
                             {/* Security Action */}
-                            <div className="flex flex-col bg-error/5 border border-error/40 p-6 rounded-3xl shadow-lg gap-1 md:w-fit">
+                            <div className="flex flex-col bg-error/5 border border-error/40 p-6 rounded-3xl shadow-lg gap-1 3xl:w-fit">
                                 <h2 className="mb-2 text-center font-bold text-lg">
                                     Action de sécurité
                                 </h2>
-                                <div className="flex flex-col xl:flex-row gap-4">
+                                <div className="flex flex-col md:flex-row justify-center gap-4">
                                     <button
                                         className="btn btn-error btn-outline"
                                         onClick={() =>
@@ -754,7 +753,7 @@ function AdminHomePage() {
                             <p className="mb-4 text-center italic">
                                 Permet la consultation et la modification des fichiers
                             </p>
-                            <div className="grid grid-cols-1 xl:grid-cols-2 gap-2">
+                            <div className="grid grid-cols-1 3xl:grid-cols-2 gap-2">
                                 {filesList.map((fileName) => (
                                     <FileInspectGridCase
                                         key={fileName.name}

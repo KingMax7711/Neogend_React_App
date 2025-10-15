@@ -277,7 +277,7 @@ function AdminFnpcPage() {
                             : "Propriétaire inconnu"
                         : "Aucun propriétaire"}
                 </td>
-                <td>{fnpc.numero_titre}</td>
+                <td>{fnpc.numero_titre.toUpperCase()}</td>
                 <td>{fnpc.points}</td>
                 <td>
                     <input
@@ -748,8 +748,8 @@ function AdminFnpcPage() {
                     <div className="bg-base-200 p-6 rounded-3xl shadow-lg">
                         <h2 className="text-xl font-bold mb-4 text-center">FNPC</h2>
                         <p className="text-center italic text-sm mb-4">
-                            L'ensemble des données n'est pas affiché, pour plus de détails
-                            sélectionner un enregistrement.
+                            L'ensemble des données ne sont pas affichées, sélectionnez un
+                            fichier pour en voir les détails.
                         </p>
                         {loading ? (
                             <div className="flex justify-center">

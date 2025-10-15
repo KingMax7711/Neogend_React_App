@@ -374,12 +374,11 @@ function AdminFprPage() {
             <tr key={fpr.id} className="text-center">
                 <td>{fmt(fpr.id)}</td>
                 <td>{ownerLabel}</td>
-                <td>{fmtName(fpr.exactitude)}</td>
+                <td className="hidden 3xl:table-cell">{fmtName(fpr.exactitude)}</td>
                 <td>{fmtDate(fpr.date_enregistrement)}</td>
                 <td>{fmt(fpr.motif_enregistrement).toUpperCase()}</td>
                 <td>{fmtName(fpr.autorite_enregistrement)}</td>
                 <td>{fmt(fpr.lieu_faits).toUpperCase()}</td>
-                <td>{fmtName(fpr.dangerosite)}</td>
                 <td>{fmt(fpr.neph)}</td>
                 <td>{fmt(fpr.num_fijait)}</td>
                 <td>
@@ -689,12 +688,13 @@ function AdminFprPage() {
                                             <tr className="text-center">
                                                 <th>ID</th>
                                                 <th>Propriétaire</th>
-                                                <th>Exactitude</th>
+                                                <th className="hidden 3xl:table-cell">
+                                                    Exactitude
+                                                </th>
                                                 <th>Date enr.</th>
                                                 <th>Motif</th>
                                                 <th>Autorité</th>
                                                 <th>Lieu</th>
-                                                <th>Dangerosité</th>
                                                 <th>NEPH</th>
                                                 <th>N° FIJAIT</th>
                                                 <th>Sélectionner</th>
@@ -736,7 +736,7 @@ function AdminFprPage() {
                         )}
 
                         <form onSubmit={handleSubmit(editSubmit)} className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 3xl:grid-cols-2 gap-3">
                                 <div className="form-control">
                                     <label className="label">
                                         <span className="label-text">Propriétaire</span>
@@ -790,6 +790,7 @@ function AdminFprPage() {
                                         control={control}
                                         name="date_enregistrement"
                                         rules={{ required: true }}
+                                        className="input"
                                     />
                                 </div>
 

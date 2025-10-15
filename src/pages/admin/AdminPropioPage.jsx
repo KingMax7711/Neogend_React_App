@@ -158,9 +158,11 @@ function AdminPropioPage() {
             <tr key={prop.id} className="text-center">
                 <td>{prop.id}</td>
                 <td>{prop.nom_famille != "" ? formatName(prop.nom_famille) : "N/A"}</td>
-                <td>{prop.nom_usage != "" ? formatName(prop.nom_usage) : "N/A"}</td>
+                <td className="hidden 3xl:table-cell">
+                    {prop.nom_usage != "" ? formatName(prop.nom_usage) : "N/A"}
+                </td>
                 <td>{prop.prenom != "" ? formatName(prop.prenom) : "N/A"}</td>
-                <td>
+                <td className="hidden 3xl:table-cell">
                     {prop.second_prenom != "" ? formatName(prop.second_prenom) : "N/A"}
                 </td>
                 <td>
@@ -442,9 +444,13 @@ function AdminPropioPage() {
                                             <tr className="text-center">
                                                 <th className="">ID</th>
                                                 <th className="">Nom de famille</th>
-                                                <th className="">Nom d'usage</th>
+                                                <th className="hidden 3xl:table-cell">
+                                                    Nom d'usage
+                                                </th>
                                                 <th className="">Prénom</th>
-                                                <th className="">Second prénom</th>
+                                                <th className="hidden 3xl:table-cell">
+                                                    Second prénom
+                                                </th>
                                                 <th className="">Date de naissance</th>
                                                 <th className="">Sexe</th>
                                                 <th className="">Lieu de naissance</th>
@@ -487,7 +493,7 @@ function AdminPropioPage() {
                             </div>
                         )}
                         <form onSubmit={handleSubmit(editSubmit)} className="space-y-3">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 3xl:grid-cols-2 gap-3">
                                 <div className="form-control">
                                     <label className="label">
                                         <span className="label-text">Prénom</span>
@@ -712,7 +718,7 @@ function AdminPropioPage() {
                                         </span>
                                     )}
                                 </div>
-                                <div className="form-control md:col-span-2">
+                                <div className="form-control 3xl:col-span-2">
                                     <label className="label">
                                         <span className="label-text">Nom de voie</span>
                                     </label>
