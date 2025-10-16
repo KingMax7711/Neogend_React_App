@@ -280,12 +280,12 @@ function ProfilePage() {
                                         <div className="text-xs uppercase opacity-60 mb-2">
                                             Actions
                                         </div>
-                                        <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid md:grid-cols-2 gap-4">
                                             {user.inscription_status == "pending" &&
                                                 user.first_name == "inconnu" &&
                                                 !completeLocked && (
                                                     <button
-                                                        className="btn btn-success col-span-2"
+                                                        className="btn btn-success md:col-span-2"
                                                         onClick={() =>
                                                             document
                                                                 .getElementById(
@@ -299,7 +299,7 @@ function ProfilePage() {
                                                 )}
                                             {user.inscription_status == "pending" &&
                                                 user.first_name != "inconnu" && (
-                                                    <span className="col-span-2 w-full bg-success/10 border border-success/40 rounded-xl p-3 font-semibold text-sm text-center">
+                                                    <span className="md:col-span-2 w-full bg-success/10 border border-success/40 rounded-xl p-3 font-semibold text-sm text-center">
                                                         Votre inscription est en cours de
                                                         traitement
                                                     </span>
@@ -325,7 +325,7 @@ function ProfilePage() {
                                                 Changement de mot de passe
                                             </button>
                                             <button
-                                                className="btn btn-warning col-span-2"
+                                                className="btn btn-warning md:col-span-2"
                                                 onClick={() =>
                                                     document
                                                         .getElementById(
@@ -338,7 +338,7 @@ function ProfilePage() {
                                                 appareils
                                             </button>
                                             {user.temp_password && (
-                                                <span className="p-3 rounded-xl bg-error/10 border border-error/40 col-span-2 font-semibold text-sm text-center">
+                                                <span className="p-3 rounded-xl bg-error/10 border border-error/40 md:col-span-2 font-semibold text-sm text-center">
                                                     Mot de passe temporaire, à changer !
                                                 </span>
                                             )}
@@ -729,8 +729,9 @@ function ProfilePage() {
                                                                 to="/conditions"
                                                                 className="link"
                                                             >
-                                                                Conditions Générales
-                                                                d'Utilisation
+                                                                {window.innerWidth < 500
+                                                                    ? "CGU"
+                                                                    : "Conditions Générales d'Utilisation"}
                                                             </NavLink>
                                                         </span>
                                                     </label>
