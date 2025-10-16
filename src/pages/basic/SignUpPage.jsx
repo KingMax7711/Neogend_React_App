@@ -3,7 +3,7 @@ import { AlertTriangle } from "lucide-react";
 import { useAuthStore } from "../../stores/authStore";
 import { useEffect } from "react";
 
-import gign1Img from "../../assets/gign1.jpeg";
+import acceuil_format2 from "../../assets/acceuil_format2.png";
 
 let didCheckCookie = false; // garde module (persiste entre montages StrictMode)
 
@@ -40,7 +40,7 @@ function SignUpPage() {
             <div className="bg-base-200 p-6 rounded-3xl shadow-lg w-fit max-w-3xl">
                 <div className="flex flex-col">
                     <div className="flex gap-8">
-                        <div className="flex flex-col justify-between items-center md:items-start mt-3 mb-3 min-h-[320px] md:min-w-80">
+                        <div className="flex flex-col justify-between items-center md:items-start mt-3 mb-3 min-h-[320px] md:min-w-80 gap-2">
                             <div className="text-left w-full">
                                 <h1 className="text-4xl font-bold">Bienvenue,</h1>
                                 <h2 className="text-2xl font-bold text-primary">
@@ -84,8 +84,8 @@ function SignUpPage() {
                             </NavLink>
                         </div>
                         <img
-                            src={gign1Img}
-                            alt="GIGN"
+                            src={acceuil_format2}
+                            alt="Image Acceuil"
                             className="w-auto max-h-[350px] h-auto rounded-3xl hidden md:block"
                         />
                     </div>
@@ -95,6 +95,9 @@ function SignUpPage() {
                     >
                         Conditions Générales D'utilisation et Politique de Confidentialité
                     </NavLink>
+                    <p className="text-sm italic text-base-content/60 text-center mt-4">
+                        Crédit Photo : Gendarmerie Nationale
+                    </p>
                 </div>
             </div>
             <div className="w-full max-w-3xl mx-auto mt-4 px-4">

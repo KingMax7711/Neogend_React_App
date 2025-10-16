@@ -6,7 +6,7 @@ import axios from "axios";
 import clsx from "clsx";
 import API from "../../global/API";
 import { useAuthStore, initializeSessionFromToken } from "../../stores/authStore";
-import gign1Img from "../../assets/gign1.jpeg";
+import acceuil_format2 from "../../assets/acceuil_format2.png";
 
 let didCheckCookie = false; // garde module (persiste entre montages StrictMode)
 
@@ -85,7 +85,7 @@ function LoginPage() {
 
     return (
         <div className="flex flex-col flex-1 items-center justify-center">
-            <div className="bg-base-200 p-6 rounded-3xl shadow-lg w-fit max-w-3xl">
+            <div className="bg-base-200 p-6 rounded-3xl shadow-lg w-fit md:max-w-3xl">
                 <div className="flex flex-col">
                     <div className="flex gap-8">
                         <form
@@ -174,8 +174,8 @@ function LoginPage() {
                             </div>
                         </form>
                         <img
-                            src={gign1Img}
-                            alt="GIGN"
+                            src={acceuil_format2}
+                            alt="Image Acceuil"
                             className="w-auto max-h-[350px] h-auto rounded-3xl hidden md:block"
                         />
                     </div>
@@ -185,6 +185,9 @@ function LoginPage() {
                     >
                         Conditions Générales D'utilisation et Politique de Confidentialité
                     </NavLink>
+                    <p className="text-sm italic text-base-content/60 text-center mt-4 hidden md:block">
+                        Crédit Photo : Gendarmerie Nationale
+                    </p>
                 </div>
             </div>
             <div className="w-full max-w-3xl mx-auto mt-4 px-4">
