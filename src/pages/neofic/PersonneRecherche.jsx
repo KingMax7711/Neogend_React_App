@@ -14,6 +14,7 @@ import { Check, Lock, FileText, ShieldAlert, FileSearch, Siren } from "lucide-re
 import { useForm, Controller } from "react-hook-form";
 import RHFDateText from "../../components/RHFDateText.jsx";
 import clsx from "clsx";
+import { useParams } from "react-router-dom";
 
 function PersonneRecherche() {
     const { user, token } = useAuthStore();
@@ -42,6 +43,8 @@ function PersonneRecherche() {
     const prevInfracHashRef = useRef("");
     const firstFprLoadRef = useRef(true);
     const prevFprHashRef = useRef("");
+    const preEnterPropId = useParams();
+    const preEnterAlreadyCompleted = useRef(false);
 
     // Liste des enregistrements FNPC
     useEffect(() => {
@@ -1270,6 +1273,34 @@ function PersonneRecherche() {
 
         setResultList(nextResults);
     };
+
+    // Prérenplissage recherche si props dans l'URL
+    useEffect(() => {
+        if (!preEnterPropId) return;
+        if (preEnterAlreadyCompleted.current) return;
+        if (propList.length === 0) return;
+
+        let idNum;
+
+        try {
+            idNum = parseInt(preEnterPropId.id, 10);
+            if (isNaN(idNum)) throw new Error("Invalid prop id");
+        } catch {
+            return;
+        }
+
+        const prop = propList.find((p) => p.id === idNum);
+        if (!prop) return;
+
+        const preValues = {
+            prenom: prop.prenom || "",
+            nom: prop.nom_famille || "",
+            date_naissance: prop.date_naissance || "",
+        };
+        reset(preValues, { keepDefaultValues: true });
+        console.log("Préremplissage recherche avec:", preValues);
+        preEnterAlreadyCompleted.current = true;
+    }, [preEnterPropId, propList, reset]);
 
     return (
         <AuthValidCheck>

@@ -100,6 +100,10 @@ const router = createBrowserRouter([
                 element: <PersonneRecherche />,
             },
             {
+                path: "neofic/personnes/:id",
+                element: <PersonneRecherche />,
+            },
+            {
                 path: "neofic/vehicules",
                 element: <VehiculeRecherche />,
             },

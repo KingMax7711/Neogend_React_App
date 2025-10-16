@@ -17,6 +17,7 @@ function AdminSivPage() {
     const [sivList, setSivList] = useState([]);
     const [propList, setPropList] = useState([]);
     const [selectedId, setSelectedId] = useState(null);
+    const [searchTerm, setSearchTerm] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -627,6 +628,32 @@ function AdminSivPage() {
         }
     };
 
+    const norm = (str) =>
+        (str || "")
+            .toString()
+            .trim()
+            .normalize("NFD")
+            .replace(/\p{Diacritic}/gu, "")
+            .toLowerCase();
+
+    const filterSivByProp = (list, termRaw) => {
+        const term = norm(termRaw);
+        if (!term) return list;
+        if (!propList.length) return list;
+
+        return list.filter((siv) => {
+            const prop = findPropById(siv.prop_id);
+            if (!prop) return false;
+            const candidates = [
+                prop.nom_famille,
+                prop.nom_usage,
+                prop.prenom,
+                prop.second_prenom,
+            ].map(norm);
+            return candidates.some((c) => c.includes(term));
+        });
+    };
+
     return (
         <AdminAuthCheck>
             <Renamer pageTitle="SIV - NEOGEND" />
@@ -647,6 +674,31 @@ function AdminSivPage() {
                             <div className="badge badge-error">{error}</div>
                         ) : (
                             <div>
+                                <div className="w-full flex flex-col items-center gap-2 pb-4">
+                                    <div className="flex items-center gap-2 w-full justify-center">
+                                        <input
+                                            type="text"
+                                            name="search"
+                                            id="search"
+                                            value={searchTerm}
+                                            onChange={(e) =>
+                                                setSearchTerm(e.target.value)
+                                            }
+                                            className="input input-bordered w-full md:w-1/2 lg:w-1/3"
+                                            placeholder="Rechercher (Propriétaire)"
+                                            autoComplete="off"
+                                        />
+                                        {searchTerm && (
+                                            <button
+                                                className="btn btn-warning btn-sm"
+                                                onClick={() => setSearchTerm("")}
+                                                type="button"
+                                            >
+                                                Effacer
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
                                 <div className="md:block hidden overflow-x-auto rounded-box border border-base-content/5 bg-base-100 w-full">
                                     <table className="table">
                                         <thead>
@@ -666,16 +718,46 @@ function AdminSivPage() {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {sortedSivList.map((siv) => (
-                                                <TableRow key={siv.id} siv={siv} />
-                                            ))}
+                                            {(() => {
+                                                const filtered = filterSivByProp(
+                                                    sortedSivList,
+                                                    searchTerm,
+                                                );
+                                                if (!filtered.length)
+                                                    return (
+                                                        <tr>
+                                                            <td
+                                                                colSpan={12}
+                                                                className="text-center italic opacity-60"
+                                                            >
+                                                                Aucun enregistrement au
+                                                                SIV trouvé
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                return filtered.map((siv) => (
+                                                    <TableRow key={siv.id} siv={siv} />
+                                                ));
+                                            })()}
                                         </tbody>
                                     </table>
                                 </div>
                                 <div className="block md:hidden space-y-4 w-full">
-                                    {sortedSivList.map((siv) => (
-                                        <MobileSivCard key={siv.id} siv={siv} />
-                                    ))}
+                                    {(() => {
+                                        const filtered = filterSivByProp(
+                                            sortedSivList,
+                                            searchTerm,
+                                        );
+                                        if (!filtered.length)
+                                            return (
+                                                <p className="text-center italic opacity-60">
+                                                    Aucun enregistrement au SIV trouvé
+                                                </p>
+                                            );
+                                        return filtered.map((siv) => (
+                                            <MobileSivCard key={siv.id} siv={siv} />
+                                        ));
+                                    })()}
                                 </div>
                             </div>
                         )}

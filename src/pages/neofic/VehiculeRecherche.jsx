@@ -13,6 +13,7 @@ import { useAuthStore } from "../../stores/authStore.js";
 import { Check, Lock, FileText, ShieldAlert, Car, Siren, ArchiveX } from "lucide-react";
 import { useForm } from "react-hook-form";
 import clsx from "clsx";
+import { NavLink } from "react-router-dom";
 
 function VehiculeRecherche() {
     const { user, token } = useAuthStore();
@@ -567,6 +568,19 @@ function VehiculeRecherche() {
                                                 ? " "
                                                 : ""}
                                             {owner.adresse_commune.toUpperCase() || ""}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span className="text-base-content/60">
+                                            NEOFIC
+                                        </span>
+                                        <div>
+                                            <NavLink
+                                                to={`/neofic/personnes/${owner.id}`}
+                                                className="btn btn-sm btn-outline btn-neutral mt-1"
+                                            >
+                                                Chercher au NEOFIC
+                                            </NavLink>
                                         </div>
                                     </div>
                                 </div>

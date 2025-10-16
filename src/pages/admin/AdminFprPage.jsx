@@ -22,6 +22,7 @@ function AdminFprPage() {
     const [selectedId, setSelectedId] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
     const firstLoadRef = useRef(true);
     const prevHashRef = useRef("");
     const firstPropLoadRef = useRef(true);
@@ -512,6 +513,32 @@ function AdminFprPage() {
 
     const sortedFprList = [...fprList].sort((a, b) => (a.id ?? 0) - (b.id ?? 0));
 
+    const norm = (str) =>
+        (str || "")
+            .toString()
+            .trim()
+            .normalize("NFD")
+            .replace(/\p{Diacritic}/gu, "")
+            .toLowerCase();
+
+    const filterFprByProprio = (list, termRaw) => {
+        const term = norm(termRaw);
+        if (!term) return list;
+        if (!propList.length) return list;
+
+        return list.filter((fpr) => {
+            const prop = findPropLinkToFpr(fpr);
+            if (!prop) return false;
+            const candidates = [
+                prop.nom_famille,
+                prop.nom_usage,
+                prop.prenom,
+                prop.second_prenom,
+            ].map(norm);
+            return candidates.some((c) => c.includes(term));
+        });
+    };
+
     const {
         register,
         handleSubmit,
@@ -682,6 +709,31 @@ function AdminFprPage() {
                             <div className="badge badge-error">{error}</div>
                         ) : (
                             <div>
+                                <div className="w-full flex flex-col items-center gap-2 pb-4">
+                                    <div className="flex items-center gap-2 w-full justify-center">
+                                        <input
+                                            type="text"
+                                            name="search"
+                                            id="search"
+                                            value={searchTerm}
+                                            onChange={(e) =>
+                                                setSearchTerm(e.target.value)
+                                            }
+                                            className="input input-bordered w-full md:w-1/2 lg:w-1/3"
+                                            placeholder="Rechercher (Propriétaire)"
+                                            autoComplete="off"
+                                        />
+                                        {searchTerm && (
+                                            <button
+                                                className="btn btn-warning btn-sm"
+                                                onClick={() => setSearchTerm("")}
+                                                type="button"
+                                            >
+                                                Effacer
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
                                 <div className="md:block hidden overflow-x-auto rounded-box border border-base-content/5 bg-base-100 w-full">
                                     <table className="table">
                                         <thead>
@@ -702,16 +754,46 @@ function AdminFprPage() {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {sortedFprList.map((fpr) => (
-                                                <TableRow key={fpr.id} fpr={fpr} />
-                                            ))}
+                                            {(() => {
+                                                const filtered = filterFprByProprio(
+                                                    sortedFprList,
+                                                    searchTerm,
+                                                );
+                                                if (!filtered.length)
+                                                    return (
+                                                        <tr>
+                                                            <td
+                                                                colSpan={11}
+                                                                className="text-center italic text-sm"
+                                                            >
+                                                                Aucun enregistrement au
+                                                                FPR trouvé
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                return filtered.map((fpr) => (
+                                                    <TableRow key={fpr.id} fpr={fpr} />
+                                                ));
+                                            })()}
                                         </tbody>
                                     </table>
                                 </div>
                                 <div className="block md:hidden space-y-4 w-full">
-                                    {sortedFprList.map((fpr) => (
-                                        <MobileFprCard key={fpr.id} fpr={fpr} />
-                                    ))}
+                                    {(() => {
+                                        const filtered = filterFprByProprio(
+                                            sortedFprList,
+                                            searchTerm,
+                                        );
+                                        if (!filtered.length)
+                                            return (
+                                                <p className="text-center italic text-sm">
+                                                    Aucun enregistrement au FPR trouvé
+                                                </p>
+                                            );
+                                        return filtered.map((fpr) => (
+                                            <MobileFprCard key={fpr.id} fpr={fpr} />
+                                        ));
+                                    })()}
                                 </div>
                             </div>
                         )}
