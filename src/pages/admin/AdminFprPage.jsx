@@ -948,8 +948,9 @@ function AdminFprPage() {
                                     <label className="label">
                                         <span className="label-text">Conduite</span>
                                     </label>
-                                    <input
-                                        className="input input-bordered"
+                                    <textarea
+                                        rows={2}
+                                        className="textarea textarea-bordered"
                                         {...register("conduite")}
                                     />
                                 </div>
