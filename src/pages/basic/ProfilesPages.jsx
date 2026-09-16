@@ -247,9 +247,9 @@ function ProfilePage() {
                                                     {user.inscription_status === "valid"
                                                         ? "Validé"
                                                         : user.inscription_status ===
-                                                          "pending"
-                                                        ? "En attente"
-                                                        : "Refusé"}
+                                                            "pending"
+                                                          ? "En attente"
+                                                          : "Refusé"}
                                                 </span>
                                             </div>
                                         </div>
@@ -306,7 +306,7 @@ function ProfilePage() {
                                                 )}
                                             <a
                                                 className="btn btn-primary"
-                                                href="https://discord.com/channels/541620491161436160/1012092654433095741"
+                                                href="https://discord.com/channels/1543967273453097092/1547186931853561886"
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                             >
