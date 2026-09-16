@@ -776,9 +776,7 @@ function AdminFnpcPage() {
                     <div className="bg-base-200 p-6 rounded-3xl shadow-lg">
                         <span className="flex flex-col mb-2">
                             <BackToAdminButton />
-                            <h2 className="text-xl font-bold text-center w-full">
-                                FNPC
-                            </h2>
+                            <h2 className="text-xl font-bold text-center w-full">FNPC</h2>
                         </span>
                         <p className="text-center italic text-sm mb-4">
                             L'ensemble des données ne sont pas affichées, sélectionnez un
