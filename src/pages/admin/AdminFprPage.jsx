@@ -11,6 +11,7 @@ import API from "../../global/API.js";
 import AdminAuthCheck from "../../components/AdminAuthCheck.jsx";
 import Renamer from "../../components/Renamer.jsx";
 import DefaultHeader from "../../components/Header.jsx";
+import BackToAdminButton from "../../components/BackToAdminButton.jsx";
 import formatName from "../../tools/formatName.js";
 import { dbDateToFront } from "../../tools/dateTranslate.js";
 
@@ -696,7 +697,12 @@ function AdminFprPage() {
                 <DefaultHeader />
                 <div className="flex flex-col md:flex-row md:items-start items-center justify-center gap-8 p-6">
                     <div className="bg-base-200 p-6 rounded-3xl shadow-lg">
-                        <h2 className="text-xl font-bold mb-4 text-center">FPR</h2>
+                        <span className="flex flex-col mb-2">
+                            <BackToAdminButton />
+                            <h2 className="text-xl font-bold text-center w-full">
+                                FPR
+                            </h2>
+                        </span>
                         <p className="text-center italic text-sm mb-4">
                             L'ensemble des données n'est pas affiché, pour plus de détails
                             sélectionner un enregistrement.

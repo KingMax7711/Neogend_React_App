@@ -11,6 +11,7 @@ import API from "../../global/API.js";
 import AdminAuthCheck from "../../components/AdminAuthCheck.jsx";
 import Renamer from "../../components/Renamer.jsx";
 import DefaultHeader from "../../components/Header.jsx";
+import BackToAdminButton from "../../components/BackToAdminButton.jsx";
 import formatName from "../../tools/formatName.js";
 import { dbDateToFront } from "../../tools/dateTranslate.js";
 
@@ -489,10 +490,10 @@ function AdminInfracPage() {
                             {infrac.statut == "paye"
                                 ? "Payé"
                                 : infrac.statut == "attente"
-                                ? "En attente"
-                                : infrac.statut == "impaye"
-                                ? "Impayé"
-                                : "Inconnu"}
+                                  ? "En attente"
+                                  : infrac.statut == "impaye"
+                                    ? "Impayé"
+                                    : "Inconnu"}
                         </div>
 
                         <div className="opacity-70">Détails</div>
@@ -685,11 +686,15 @@ function AdminInfracPage() {
             <Renamer pageTitle="INFRAC - NEOGEND" />
             <div className="">
                 <DefaultHeader />
+
                 <div className="flex flex-col md:flex-row md:items-start items-center justify-center gap-8 p-6">
                     <div className="bg-base-200 p-6 rounded-3xl shadow-lg">
-                        <h2 className="text-xl font-bold mb-4 text-center">
-                            INFRACTIONS
-                        </h2>
+                        <span className="flex flex-col mb-2">
+                            <BackToAdminButton />
+                            <h2 className="text-xl font-bold text-center w-full">
+                                INFRACTIONS
+                            </h2>
+                        </span>
                         {loading ? (
                             <div className="flex justify-center">
                                 <span className="loading loading-spinner text-primary"></span>

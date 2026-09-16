@@ -450,8 +450,8 @@ function AdminHomePage() {
         "Gardien de la Paix",
     ];
 
-    const affectationList = ["COB Pont l'Abbé"];
-    const serverList = ["France Rôleplay", "Breizh Rôleplay"];
+    const affectationList = ["Compagnie Bonneville", "PSIG Bonneville", "PMO Bonneville"];
+    const serverList = ["France Rôleplay (Nostalgie)", "Hexagone Life RP"];
 
     const {
         register,
@@ -939,42 +939,42 @@ function AdminHomePage() {
                                                               ),
                                                           )
                                                         : watch("rp_service") ===
-                                                          "Police Nationale"
-                                                        ? gradePoliceNationale.map(
-                                                              (grade) => (
-                                                                  <option
-                                                                      key={grade}
-                                                                      value={grade}
-                                                                  >
-                                                                      {grade}
-                                                                  </option>
-                                                              ),
-                                                          )
-                                                        : watch("rp_service") ===
-                                                          "Police Nationale"
-                                                        ? gradePoliceNationale.map(
-                                                              (grade) => (
-                                                                  <option
-                                                                      key={grade}
-                                                                      value={grade}
-                                                                  >
-                                                                      {grade}
-                                                                  </option>
-                                                              ),
-                                                          )
-                                                        : watch("rp_service") ===
-                                                          "Police Municipale"
-                                                        ? gradePoliceMunicipale.map(
-                                                              (grade) => (
-                                                                  <option
-                                                                      key={grade}
-                                                                      value={grade}
-                                                                  >
-                                                                      {grade}
-                                                                  </option>
-                                                              ),
-                                                          )
-                                                        : null}
+                                                            "Police Nationale"
+                                                          ? gradePoliceNationale.map(
+                                                                (grade) => (
+                                                                    <option
+                                                                        key={grade}
+                                                                        value={grade}
+                                                                    >
+                                                                        {grade}
+                                                                    </option>
+                                                                ),
+                                                            )
+                                                          : watch("rp_service") ===
+                                                              "Police Nationale"
+                                                            ? gradePoliceNationale.map(
+                                                                  (grade) => (
+                                                                      <option
+                                                                          key={grade}
+                                                                          value={grade}
+                                                                      >
+                                                                          {grade}
+                                                                      </option>
+                                                                  ),
+                                                              )
+                                                            : watch("rp_service") ===
+                                                                "Police Municipale"
+                                                              ? gradePoliceMunicipale.map(
+                                                                    (grade) => (
+                                                                        <option
+                                                                            key={grade}
+                                                                            value={grade}
+                                                                        >
+                                                                            {grade}
+                                                                        </option>
+                                                                    ),
+                                                                )
+                                                              : null}
                                                 </select>
                                                 <select
                                                     className={clsx(

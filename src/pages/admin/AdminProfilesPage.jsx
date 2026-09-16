@@ -9,6 +9,7 @@ import { useAuthStore } from "../../stores/authStore.js";
 import Renamer from "../../components/Renamer.jsx";
 import AdminAuthCheck from "../../components/AdminAuthCheck.jsx";
 import DefaultHeader from "../../components/Header.jsx";
+import BackToAdminButton from "../../components/BackToAdminButton.jsx";
 import LoadingComponent from "../../components/LoadingComponent.jsx";
 import formatName from "../../tools/formatName.js";
 import { privilegesToFront } from "../../tools/privilegesTranslate.js";
@@ -206,8 +207,8 @@ function AdminProfilePage() {
         "Gardien de la Paix",
     ];
 
-    const affectationList = ["COB Pont l'Abbé"];
-    const serverList = ["France Rôleplay", "Breizh Rôleplay"];
+    const affectationList = ["Compagnie Bonneville", "PSIG Bonneville", "PMO Bonneville"];
+    const serverList = ["France Rôleplay (Nostalgie)", "Hexagone Life RP"];
     const qualificationList = [
         "Officier de Police Judiciaire",
         "Agent de Police Judiciaire",
@@ -498,6 +499,7 @@ function AdminProfilePage() {
             ) : (
                 <div className="">
                     <DefaultHeader />
+                    <BackToAdminButton />
                     <Renamer pageTitle={"Admin Profil - Neogend"} />
                     <div className="max-w-screen xxl:max-w-2/3 mx-auto p-4">
                         <div className="flex box-border flex-col items-stretch justify-center md:flex-row gap-4">
@@ -603,12 +605,12 @@ function AdminProfilePage() {
                                                     "valid"
                                                         ? "Validé"
                                                         : checkUser.inscription_status ===
-                                                          "pending"
-                                                        ? "En attente"
-                                                        : checkUser.inscription_status ===
-                                                          "suspended"
-                                                        ? "Suspendu"
-                                                        : "Refusé"}
+                                                            "pending"
+                                                          ? "En attente"
+                                                          : checkUser.inscription_status ===
+                                                              "suspended"
+                                                            ? "Suspendu"
+                                                            : "Refusé"}
                                                 </span>
                                             </div>
                                         </div>
@@ -799,7 +801,7 @@ function AdminProfilePage() {
                                                     checkUser.rp_affectation,
                                                 )}
                                                 {checkUser.rp_affectation
-                                                    ? ` (${checkUser.rp_affectation})`
+                                                    ? ` (${checkUser.rp_affectation.slice(0, -3)})`
                                                     : ""}
                                             </div>
                                         </div>
@@ -1310,8 +1312,8 @@ function AdminProfilePage() {
                                                                 service === "gn"
                                                                     ? gradeGendarmerie
                                                                     : service === "pn"
-                                                                    ? gradePoliceNationale
-                                                                    : gradePoliceMunicipale;
+                                                                      ? gradePoliceNationale
+                                                                      : gradePoliceMunicipale;
                                                             return (
                                                                 <select
                                                                     className={clsx(
